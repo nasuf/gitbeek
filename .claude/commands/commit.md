@@ -1,0 +1,4 @@
+- 总结git status里面列出来的这次所有的代码改动，包括 `/.claude` 下面的改动
+- @PROJECT_PLAN.md 里面已经实现的task做上标记
+- 给出合适的git commit message并提交
+- commit message里面不要添加关于claude code相关的信息。
