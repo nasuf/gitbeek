@@ -259,31 +259,31 @@ GitBookiOS/
 
 #### 3.2 Spaces Management
 - [x] SpaceListView (Grid/List 切换)
-- [ ] SpaceDetailView (Liquid Glass toolbar)
-- [ ] SpaceSettingsView
+- [x] SpaceDetailView (Liquid Glass toolbar)
+- [x] SpaceSettingsView
 - [x] 创建新空间 (GlassSheet)
 - [x] 删除空间 (confirmation dialog)
-- [ ] 空间搜索/过滤
+- [x] 空间搜索/过滤
 - [x] Collection 层级视图
 
 #### 3.3 Pages Navigation
-- [ ] 目录树视图 (OutlineGroup)
-- [ ] 页面列表视图
-- [ ] 面包屑导航 (Liquid Glass breadcrumbs)
-- [ ] 空间内页面搜索
+- [x] 目录树视图 (OutlineGroup)
+- [x] 页面列表视图
+- [x] 面包屑导航 (Liquid Glass breadcrumbs)
+- [x] 空间内页面搜索
 
 #### 3.4 Markdown Rendering
-- [ ] 基础 Markdown 渲染 (swift-markdown + AttributedString)
-- [ ] 代码块语法高亮 (Splash/HighlightSwift)
-- [ ] 表格渲染
-- [ ] 图片加载和缓存 (SDWebImageSwiftUI)
-- [ ] 链接处理 (内部/外部)
+- [x] 基础 Markdown 渲染 (swift-markdown + AttributedString)
+- [x] 代码块语法高亮 (Splash/HighlightSwift)
+- [x] 表格渲染
+- [x] 图片加载和缓存 (SDWebImageSwiftUI)
+- [x] 链接处理 (内部/外部)
 - [ ] LaTeX/数学公式渲染 (可选)
 - [ ] Mermaid 图表渲染 (可选)
-- [ ] GitBook 自定义块渲染
-  - [ ] Hints (info, warning, danger, success)
-  - [ ] Tabs
-  - [ ] 可展开区块
+- [x] GitBook 自定义块渲染
+  - [x] Hints (info, warning, danger, success)
+  - [x] Tabs
+  - [x] 可展开区块
   - [ ] Embeds
 
 ---
@@ -552,8 +552,8 @@ Button("Action") { }
 - [x] Phase 1: Core Infrastructure
 - [x] Phase 2: Authentication (login/logout)
 - [x] Phase 3.1-3.2: View organizations and spaces
-- [ ] Phase 3.3: Basic page navigation
-- [ ] Phase 3.4: Basic markdown rendering
+- [x] Phase 3.3: Basic page navigation
+- [x] Phase 3.4: Basic markdown rendering
 
 ### V1.0
 - [ ] Phase 4: Full content editing

@@ -249,12 +249,22 @@ struct HomeView: View {
             )
 
         case .spaceDetail(let spaceId):
-            Text("Space: \(spaceId)")
-                .navigationTitle("Space")
+            SpaceDetailView(
+                spaceId: spaceId,
+                spaceRepository: DependencyContainer.shared.spaceRepository,
+                pageRepository: DependencyContainer.shared.pageRepository
+            )
 
         case .trash(let organizationId):
             // Trash is handled as a sheet in SpaceListView
             Text("Trash for \(organizationId)")
+
+        case .pageDetail(let spaceId, let pageId):
+            PageDetailView(
+                spaceId: spaceId,
+                pageId: pageId,
+                pageRepository: DependencyContainer.shared.pageRepository
+            )
 
         default:
             EmptyView()

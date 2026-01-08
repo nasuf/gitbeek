@@ -46,6 +46,7 @@ struct SpaceListView: View {
         .toolbar {
             toolbarContent
         }
+        .searchable(text: $viewModel.searchQuery, prompt: "Search spaces")
         .refreshable {
             await viewModel.refresh()
         }
@@ -140,14 +141,14 @@ struct SpaceListView: View {
     @ViewBuilder
     private var hierarchyView: some View {
         // Collections section
-        if !viewModel.collections.isEmpty {
+        if !viewModel.filteredCollections.isEmpty {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 sectionHeader("Collections")
 
-                ForEach(viewModel.collections) { collection in
+                ForEach(viewModel.filteredCollections) { collection in
                     CollectionRowView(
                         collection: collection,
-                        isExpanded: viewModel.isExpanded(collection.id),
+                        isExpanded: viewModel.isExpanded(collection.id) || viewModel.isSearching,
                         onToggle: {
                             viewModel.toggleCollection(id: collection.id)
                         },
@@ -165,11 +166,11 @@ struct SpaceListView: View {
         }
 
         // Top-level spaces section
-        if !viewModel.topLevelSpaces.isEmpty {
+        if !viewModel.filteredTopLevelSpaces.isEmpty {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 sectionHeader("Spaces")
 
-                ForEach(viewModel.topLevelSpaces) { space in
+                ForEach(viewModel.filteredTopLevelSpaces) { space in
                     SpaceRowView(
                         space: space,
                         onTap: {
@@ -184,6 +185,27 @@ struct SpaceListView: View {
                 }
             }
         }
+
+        // No results message
+        if viewModel.isSearching && viewModel.filteredCollections.isEmpty && viewModel.filteredTopLevelSpaces.isEmpty {
+            noSearchResultsView
+        }
+    }
+
+    // MARK: - No Search Results
+
+    private var noSearchResultsView: some View {
+        VStack(spacing: AppSpacing.md) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 40))
+                .foregroundStyle(.tertiary)
+
+            Text("No results for \"\(viewModel.searchQuery)\"")
+                .font(AppTypography.bodyMedium)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.lg)
     }
 
     // MARK: - Flat View

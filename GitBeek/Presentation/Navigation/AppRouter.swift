@@ -135,20 +135,28 @@ extension View {
     func navigationDestination(for destination: AppDestination) -> some View {
         switch destination {
         case .spaceList(let organizationId):
-            // TODO: Implement SpaceListView
-            Text("Space List for \(organizationId)")
+            SpaceListView(
+                organizationId: organizationId,
+                spaceRepository: DependencyContainer.shared.spaceRepository
+            )
 
         case .spaceDetail(let spaceId):
-            // TODO: Implement SpaceDetailView
-            Text("Space Detail: \(spaceId)")
+            SpaceDetailView(
+                spaceId: spaceId,
+                spaceRepository: DependencyContainer.shared.spaceRepository,
+                pageRepository: DependencyContainer.shared.pageRepository
+            )
 
         case .trash(let organizationId):
             // Trash is handled as a sheet in SpaceListView
             Text("Trash for \(organizationId)")
 
         case .pageDetail(let spaceId, let pageId):
-            // TODO: Implement PageDetailView
-            Text("Page \(pageId) in Space \(spaceId)")
+            PageDetailView(
+                spaceId: spaceId,
+                pageId: pageId,
+                pageRepository: DependencyContainer.shared.pageRepository
+            )
 
         case .pageEditor(let spaceId, let pageId):
             // TODO: Implement PageEditorView

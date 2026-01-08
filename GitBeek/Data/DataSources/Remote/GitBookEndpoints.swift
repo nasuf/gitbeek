@@ -153,15 +153,15 @@ enum GitBookEndpoint: APIEndpoint {
         case .getContent(let spaceId):
             return "/spaces/\(spaceId)/content"
         case .getPageByPath(let spaceId, let path):
-            return "/spaces/\(spaceId)/content/path/\(path)"
+            return "/spaces/\(spaceId)/content/page/\(path)"
         case .getPage(let spaceId, let pageId):
-            return "/spaces/\(spaceId)/content/\(pageId)"
+            return "/spaces/\(spaceId)/content/page/\(pageId)"
         case .createPage(let spaceId, _):
-            return "/spaces/\(spaceId)/content"
+            return "/spaces/\(spaceId)/content/pages"
         case .updatePage(let spaceId, let pageId, _):
-            return "/spaces/\(spaceId)/content/\(pageId)"
+            return "/spaces/\(spaceId)/content/page/\(pageId)"
         case .deletePage(let spaceId, let pageId):
-            return "/spaces/\(spaceId)/content/\(pageId)"
+            return "/spaces/\(spaceId)/content/page/\(pageId)"
 
         // Change Requests
         case .listChangeRequests(let spaceId, _):

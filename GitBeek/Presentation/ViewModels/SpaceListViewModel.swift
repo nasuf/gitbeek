@@ -56,6 +56,9 @@ final class SpaceListViewModel {
     /// View mode (hierarchy or flat)
     var viewMode: SpaceListViewMode = .hierarchy
 
+    /// Search query for filtering spaces
+    var searchQuery = ""
+
     // MARK: - Types
 
     /// A collection with its child spaces
@@ -93,14 +96,56 @@ final class SpaceListViewModel {
 
     /// All active spaces for flat view mode (sorted alphabetically)
     var flatSpaces: [Space] {
-        allSpaces
+        let spaces = allSpaces
             .filter { !$0.isDeleted }
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+
+        guard !searchQuery.isEmpty else { return spaces }
+        return spaces.filter { $0.title.localizedCaseInsensitiveContains(searchQuery) }
     }
 
     /// Whether to show hierarchy (collections with children) or flat list
     var showHierarchy: Bool {
         viewMode == .hierarchy
+    }
+
+    /// Filtered collections based on search query
+    var filteredCollections: [CollectionWithSpaces] {
+        guard !searchQuery.isEmpty else { return collections }
+
+        return collections.compactMap { collection in
+            // Filter children that match
+            let matchingChildren = collection.children.filter {
+                $0.title.localizedCaseInsensitiveContains(searchQuery)
+            }
+
+            // Include if collection title matches or has matching children
+            if collection.collection.title.localizedCaseInsensitiveContains(searchQuery) || !matchingChildren.isEmpty {
+                var updated = collection
+                // If collection itself doesn't match, only show matching children
+                if !collection.collection.title.localizedCaseInsensitiveContains(searchQuery) {
+                    updated = CollectionWithSpaces(collection: collection.collection, children: matchingChildren)
+                }
+                return updated
+            }
+            return nil
+        }
+    }
+
+    /// Filtered top-level spaces based on search query
+    var filteredTopLevelSpaces: [Space] {
+        guard !searchQuery.isEmpty else { return topLevelSpaces }
+        return topLevelSpaces.filter { $0.title.localizedCaseInsensitiveContains(searchQuery) }
+    }
+
+    /// Whether search is active
+    var isSearching: Bool {
+        !searchQuery.isEmpty
+    }
+
+    /// Clear search query
+    func clearSearch() {
+        searchQuery = ""
     }
 
     // MARK: - Dependencies

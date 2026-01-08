@@ -16,7 +16,6 @@ enum ContentNodeType: String, Codable, Sendable {
 
 /// Content node (page or group)
 struct ContentNodeDTO: Codable, Equatable, Sendable, Identifiable {
-    let object: String  // "document", "group", or "link"
     let id: String
     let title: String
     let emoji: String?
@@ -24,9 +23,13 @@ struct ContentNodeDTO: Codable, Equatable, Sendable, Identifiable {
     let slug: String?
     let description: String?
     let type: ContentNodeType?
+    let kind: String?  // "sheet", "group", "link", etc.
     let pages: [ContentNodeDTO]?  // Child pages for groups
     let createdAt: Date?
     let updatedAt: Date?
+    let documentId: String?
+    let layout: LayoutDTO?
+    let urls: PageURLsDTO?
 
     // For link type
     let target: LinkTargetDTO?
@@ -37,25 +40,53 @@ struct ContentNodeDTO: Codable, Equatable, Sendable, Identifiable {
         let space: String?
         let page: String?
     }
+
+    struct LayoutDTO: Codable, Equatable, Sendable {
+        let cover: Bool?
+        let coverSize: String?
+        let title: Bool?
+        let description: Bool?
+        let tableOfContents: Bool?
+        let outline: Bool?
+        let pagination: Bool?
+        let metadata: Bool?
+        let width: String?
+    }
+
+    struct PageURLsDTO: Codable, Equatable, Sendable {
+        let app: String?
+    }
+
+    // Computed property to get object type from type field
+    var object: String {
+        type?.rawValue ?? kind ?? "document"
+    }
 }
 
-/// Content tree structure
+/// Content tree structure (revision response)
 struct ContentTreeDTO: Codable, Equatable, Sendable {
-    let object: String  // "content"
+    let object: String  // "revision" or "content"
+    let id: String?  // revision id
+    let parents: [String]?  // parent revision ids
     let pages: [ContentNodeDTO]
 }
 
 /// Page content (markdown/document)
 struct PageContentDTO: Codable, Equatable, Sendable {
-    let object: String  // "document"
     let id: String
     let title: String
     let emoji: String?
     let path: String
     let slug: String?
     let description: String?
+    let type: ContentNodeType?
+    let kind: String?
     let createdAt: Date?
     let updatedAt: Date?
+    let documentId: String?
+    let pages: [ContentNodeDTO]?
+    let layout: ContentNodeDTO.LayoutDTO?
+    let urls: ContentNodeDTO.PageURLsDTO?
 
     // Content in various formats
     let markdown: String?

@@ -132,6 +132,7 @@ final class CachedPage {
     var path: String
     var slug: String?
     var pageDescription: String?
+    var pageType: String
     var markdown: String?
     var parentId: String?
     var order: Int
@@ -149,6 +150,7 @@ final class CachedPage {
         path: String,
         slug: String? = nil,
         pageDescription: String? = nil,
+        pageType: String = "document",
         markdown: String? = nil,
         parentId: String? = nil,
         order: Int = 0,
@@ -162,6 +164,7 @@ final class CachedPage {
         self.path = path
         self.slug = slug
         self.pageDescription = pageDescription
+        self.pageType = pageType
         self.markdown = markdown
         self.parentId = parentId
         self.order = order
@@ -396,6 +399,70 @@ final class SwiftDataStore {
             predicate: #Predicate { $0.id == id }
         )
         return try context.fetch(descriptor).first
+    }
+
+    func savePage(_ page: Page, spaceId: String) throws -> CachedPage {
+        if let existing = try fetchPage(id: page.id) {
+            // Update existing
+            existing.title = page.title
+            existing.emoji = page.emoji
+            existing.path = page.path
+            existing.slug = page.slug
+            existing.pageDescription = page.description
+            existing.pageType = page.type.rawValue
+            existing.markdown = page.markdown
+            existing.createdAt = page.createdAt
+            existing.updatedAt = page.updatedAt
+            existing.cachedAt = Date()
+            return existing
+        } else {
+            let cached = CachedPage(
+                id: page.id,
+                spaceId: spaceId,
+                title: page.title,
+                emoji: page.emoji,
+                path: page.path,
+                slug: page.slug,
+                pageDescription: page.description,
+                pageType: page.type.rawValue,
+                markdown: page.markdown,
+                parentId: nil,  // Would need to be extracted from page structure
+                order: 0,
+                createdAt: page.createdAt,
+                updatedAt: page.updatedAt
+            )
+            context.insert(cached)
+            return cached
+        }
+    }
+
+    func savePageContent(_ dto: PageContentDTO, spaceId: String) throws -> CachedPage {
+        if let existing = try fetchPage(id: dto.id) {
+            // Update existing with content
+            existing.title = dto.title
+            existing.markdown = dto.markdown
+            existing.cachedAt = Date()
+            return existing
+        } else {
+            let cached = CachedPage(
+                id: dto.id,
+                spaceId: spaceId,
+                title: dto.title,
+                emoji: dto.emoji,
+                path: dto.path,
+                pageType: "document",
+                markdown: dto.markdown,
+                order: 0
+            )
+            context.insert(cached)
+            return cached
+        }
+    }
+
+    func deletePage(_ pageId: String) throws {
+        if let page = try fetchPage(id: pageId) {
+            context.delete(page)
+        }
     }
 
     // MARK: - User Operations
