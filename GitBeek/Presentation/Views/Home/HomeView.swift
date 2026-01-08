@@ -57,10 +57,9 @@ struct HomeView: View {
                 OrganizationPickerView()
             }
             .sheet(isPresented: $showCreateSpace) {
-                if let viewModel = spaceListViewModel,
-                   let orgId = profileViewModel.selectedOrganization?.id {
+                if let orgId = profileViewModel.selectedOrganization?.id {
                     CreateSpaceSheet(
-                        viewModel: viewModel,
+                        viewModel: spaceListViewModel ?? SpaceListViewModel(spaceRepository: DependencyContainer.shared.spaceRepository),
                         organizationId: orgId
                     )
                 }
