@@ -215,6 +215,12 @@ GitBookiOS/
 - [x] 实现 Search API
   - [x] GET /orgs/{orgId}/search - 全局搜索
   - [x] GET /spaces/{spaceId}/search - 空间搜索
+- [x] 实现 Collections API
+  - [x] GET /orgs/{orgId}/collections - 列出集合
+  - [x] GET /collections/{collectionId} - 获取集合详情
+- [x] 实现 Spaces Trash API
+  - [x] DELETE /spaces/{spaceId} - 软删除空间
+  - [x] POST /spaces/{spaceId}/restore - 恢复空间
 
 #### 1.4 Local Storage
 - [x] 配置 SwiftData 模型
@@ -245,20 +251,20 @@ GitBookiOS/
 ### Phase 3: Content Browsing
 
 #### 3.1 Home Screen
-- [ ] HomeView 主界面 (NavigationSplitView)
-- [ ] 组织列表 (Liquid Glass cards)
-- [ ] 最近访问空间快速入口
-- [ ] 搜索栏 (`.searchable` with Liquid Glass)
-- [ ] Pull-to-refresh (`.refreshable`)
+- [x] HomeView 主界面 (NavigationSplitView)
+- [x] 组织列表 (Liquid Glass cards)
+- [x] 最近访问空间快速入口
+- [x] 搜索栏 (`.searchable` with Liquid Glass)
+- [x] Pull-to-refresh (`.refreshable`)
 
 #### 3.2 Spaces Management
-- [ ] SpaceListView (Grid/List 切换)
+- [x] SpaceListView (Grid/List 切换)
 - [ ] SpaceDetailView (Liquid Glass toolbar)
 - [ ] SpaceSettingsView
-- [ ] 创建新空间 (GlassSheet)
-- [ ] 删除空间 (confirmation dialog)
+- [x] 创建新空间 (GlassSheet)
+- [x] 删除空间 (confirmation dialog)
 - [ ] 空间搜索/过滤
-- [ ] Collection 层级视图
+- [x] Collection 层级视图
 
 #### 3.3 Pages Navigation
 - [ ] 目录树视图 (OutlineGroup)
@@ -542,10 +548,10 @@ Button("Action") { }
 ## Milestones
 
 ### MVP (Minimum Viable Product)
-- [ ] Phase 0: Liquid Glass Design System
-- [ ] Phase 1: Core Infrastructure
-- [ ] Phase 2: Authentication (login/logout)
-- [ ] Phase 3.1-3.2: View organizations and spaces
+- [x] Phase 0: Liquid Glass Design System
+- [x] Phase 1: Core Infrastructure
+- [x] Phase 2: Authentication (login/logout)
+- [x] Phase 3.1-3.2: View organizations and spaces
 - [ ] Phase 3.3: Basic page navigation
 - [ ] Phase 3.4: Basic markdown rendering
 
@@ -572,8 +578,8 @@ Button("Action") { }
 - [ ] Model serialization tests (Codable)
 - [x] Keychain storage tests
 - [ ] SwiftData tests
-- [ ] Repository tests
-- [x] ViewModel tests (AuthViewModel, ProfileViewModel)
+- [x] Repository tests (SpaceRepositoryImpl)
+- [x] ViewModel tests (AuthViewModel, ProfileViewModel, SpaceListViewModel)
 
 ### UI Tests
 - [ ] Login flow tests

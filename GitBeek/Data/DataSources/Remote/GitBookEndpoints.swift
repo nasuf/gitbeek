@@ -33,6 +33,14 @@ enum GitBookEndpoint: APIEndpoint {
     /// List organization members
     case listMembers(orgId: String, page: String?)
 
+    // MARK: - Collections
+
+    /// List collections in organization
+    case listCollections(orgId: String, page: String?)
+
+    /// Get collection by ID
+    case getCollection(collectionId: String)
+
     // MARK: - Spaces
 
     /// List spaces in organization
@@ -47,8 +55,11 @@ enum GitBookEndpoint: APIEndpoint {
     /// Update space
     case updateSpace(spaceId: String, request: SpaceRequestDTO)
 
-    /// Delete space
+    /// Delete space (soft delete - moves to trash)
     case deleteSpace(spaceId: String)
+
+    /// Restore deleted space from trash
+    case restoreSpace(spaceId: String)
 
     // MARK: - Content
 
@@ -118,6 +129,12 @@ enum GitBookEndpoint: APIEndpoint {
         case .listMembers(let orgId, _):
             return "/orgs/\(orgId)/members"
 
+        // Collections
+        case .listCollections(let orgId, _):
+            return "/orgs/\(orgId)/collections"
+        case .getCollection(let collectionId):
+            return "/collections/\(collectionId)"
+
         // Spaces
         case .listSpaces(let orgId, _):
             return "/orgs/\(orgId)/spaces"
@@ -129,6 +146,8 @@ enum GitBookEndpoint: APIEndpoint {
             return "/spaces/\(spaceId)"
         case .deleteSpace(let spaceId):
             return "/spaces/\(spaceId)"
+        case .restoreSpace(let spaceId):
+            return "/spaces/\(spaceId)/restore"
 
         // Content
         case .getContent(let spaceId):
@@ -170,7 +189,7 @@ enum GitBookEndpoint: APIEndpoint {
         switch self {
         case .exchangeToken, .refreshToken,
              .createSpace, .createPage, .createChangeRequest,
-             .mergeChangeRequest:
+             .mergeChangeRequest, .restoreSpace:
             return .post
         case .updateSpace, .updatePage, .updateChangeRequest:
             return .patch
@@ -185,6 +204,7 @@ enum GitBookEndpoint: APIEndpoint {
         switch self {
         case .listOrganizations(let page),
              .listMembers(_, let page),
+             .listCollections(_, let page),
              .listSpaces(_, let page),
              .listChangeRequests(_, let page):
             var params: [String: String] = [:]

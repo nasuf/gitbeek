@@ -117,6 +117,37 @@ extension View {
     }
 }
 
+// MARK: - Scale Press Button Style
+
+/// A simple button style that scales on press
+struct ScalePressButtonStyle: ButtonStyle {
+    let scale: CGFloat
+    let duration: Double
+
+    init(scale: CGFloat = 0.98, duration: Double = 0.15) {
+        self.scale = scale
+        self.duration = duration
+    }
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(.easeInOut(duration: duration), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == ScalePressButtonStyle {
+    /// Standard scale press button style
+    static var scalePress: ScalePressButtonStyle {
+        ScalePressButtonStyle()
+    }
+
+    /// Scale press with custom parameters
+    static func scalePress(scale: CGFloat = 0.98, duration: Double = 0.15) -> ScalePressButtonStyle {
+        ScalePressButtonStyle(scale: scale, duration: duration)
+    }
+}
+
 // MARK: - Haptic Feedback
 
 /// Haptic feedback utilities

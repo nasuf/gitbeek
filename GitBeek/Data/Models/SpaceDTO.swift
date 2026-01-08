@@ -33,9 +33,10 @@ struct SpaceDTO: Codable, Equatable, Sendable, Identifiable {
     let type: SpaceType?
     let createdAt: Date?
     let updatedAt: Date?
+    let deletedAt: Date?
     let urls: SpaceURLsDTO?
-    let organization: OrganizationReferenceDTO?
-    let parent: SpaceReferenceDTO?
+    let organization: String?  // Organization ID (string, not object)
+    let parent: String?  // Parent space/collection ID (string, not object)
 
     struct SpaceURLsDTO: Codable, Equatable, Sendable {
         let location: String?
@@ -76,12 +77,14 @@ struct SpaceRequestDTO: Codable, Sendable {
     let title: String?
     let emoji: String?
     let visibility: SpaceVisibility?
+    let type: SpaceType?
     let parent: String?  // Parent space/collection ID
 
-    init(title: String? = nil, emoji: String? = nil, visibility: SpaceVisibility? = nil, parent: String? = nil) {
+    init(title: String? = nil, emoji: String? = nil, visibility: SpaceVisibility? = nil, type: SpaceType? = nil, parent: String? = nil) {
         self.title = title
         self.emoji = emoji
         self.visibility = visibility
+        self.type = type
         self.parent = parent
     }
 }

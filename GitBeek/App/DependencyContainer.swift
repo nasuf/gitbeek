@@ -26,6 +26,7 @@ final class DependencyContainer {
     let userRepository: UserRepository
     let organizationRepository: OrganizationRepository
     let authRepository: AuthRepository
+    let spaceRepository: SpaceRepository
 
     // MARK: - ViewModels
 
@@ -53,6 +54,8 @@ final class DependencyContainer {
             keychainManager: keychainManager,
             userRepository: userRepo
         )
+
+        spaceRepository = SpaceRepositoryImpl(apiService: apiService, store: swiftDataStore)
 
         // Initialize ViewModels
         authViewModel = AuthViewModel(authRepository: authRepository)

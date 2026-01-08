@@ -17,6 +17,8 @@ struct HomeView: View {
     // MARK: - State
 
     @State private var showOrganizationPicker = false
+    @State private var showCreateSpace = false
+    @State private var spaceListViewModel: SpaceListViewModel?
 
     // MARK: - Body
 
@@ -53,6 +55,15 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showOrganizationPicker) {
                 OrganizationPickerView()
+            }
+            .sheet(isPresented: $showCreateSpace) {
+                if let viewModel = spaceListViewModel,
+                   let orgId = profileViewModel.selectedOrganization?.id {
+                    CreateSpaceSheet(
+                        viewModel: viewModel,
+                        organizationId: orgId
+                    )
+                }
             }
         }
     }
@@ -141,7 +152,15 @@ struct HomeView: View {
                     icon: "plus.circle",
                     color: AppColors.success
                 ) {
-                    // TODO: Implement create space
+                    if let orgId = profileViewModel.selectedOrganization?.id {
+                        spaceListViewModel = SpaceListViewModel(
+                            spaceRepository: DependencyContainer.shared.spaceRepository
+                        )
+                        Task {
+                            await spaceListViewModel?.loadSpaces(organizationId: orgId)
+                        }
+                        showCreateSpace = true
+                    }
                 }
 
                 QuickActionButton(
@@ -224,12 +243,18 @@ struct HomeView: View {
     private func destinationView(for destination: AppDestination) -> some View {
         switch destination {
         case .spaceList(let organizationId):
-            Text("Spaces for \(organizationId)")
-                .navigationTitle("Spaces")
+            SpaceListView(
+                organizationId: organizationId,
+                spaceRepository: DependencyContainer.shared.spaceRepository
+            )
 
         case .spaceDetail(let spaceId):
             Text("Space: \(spaceId)")
                 .navigationTitle("Space")
+
+        case .trash(let organizationId):
+            // Trash is handled as a sheet in SpaceListView
+            Text("Trash for \(organizationId)")
 
         default:
             EmptyView()

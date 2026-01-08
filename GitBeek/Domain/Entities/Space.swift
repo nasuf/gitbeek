@@ -8,7 +8,7 @@
 import Foundation
 
 /// Domain model representing a space (documentation site)
-struct Space: Identifiable, Equatable, Sendable {
+struct Space: Identifiable, Equatable, Hashable, Sendable {
     let id: String
     let title: String
     let emoji: String?
@@ -20,6 +20,7 @@ struct Space: Identifiable, Equatable, Sendable {
     let organizationId: String?
     let createdAt: Date?
     let updatedAt: Date?
+    let deletedAt: Date?
 
     /// Space visibility options
     enum Visibility: String, Sendable {
@@ -71,6 +72,20 @@ struct Space: Identifiable, Equatable, Sendable {
         type == .collection
     }
 
+    /// Whether this space is deleted (in trash)
+    var isDeleted: Bool {
+        deletedAt != nil
+    }
+
+    /// Days remaining before permanent deletion (7-day retention)
+    var daysUntilPermanentDeletion: Int? {
+        guard let deletedAt = deletedAt else { return nil }
+        let calendar = Calendar.current
+        let deletionDate = calendar.date(byAdding: .day, value: 7, to: deletedAt) ?? deletedAt
+        let days = calendar.dateComponents([.day], from: Date(), to: deletionDate).day ?? 0
+        return max(0, days)
+    }
+
     /// Display title with optional emoji
     var displayTitle: String {
         if let emoji = emoji {
@@ -86,14 +101,15 @@ extension Space {
     init(from dto: SpaceDTO) {
         self.id = dto.id
         self.title = dto.title
-        self.emoji = dto.emoji
+        self.emoji = dto.emoji?.asEmoji  // Convert hex code to emoji character
         self.visibility = Visibility(rawValue: dto.visibility.rawValue) ?? .private
         self.type = dto.type.flatMap { SpaceType(rawValue: $0.rawValue) }
         self.appURL = dto.urls?.app.flatMap { URL(string: $0) }
         self.publishedURL = dto.urls?.published.flatMap { URL(string: $0) }
-        self.parentId = dto.parent?.id
-        self.organizationId = dto.organization?.id
+        self.parentId = dto.parent  // parent is now a String directly
+        self.organizationId = dto.organization  // organization is now a String directly
         self.createdAt = dto.createdAt
         self.updatedAt = dto.updatedAt
+        self.deletedAt = dto.deletedAt
     }
 }

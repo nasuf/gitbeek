@@ -71,6 +71,7 @@ final class CachedSpace {
     var parentId: String?
     var createdAt: Date?
     var updatedAt: Date?
+    var deletedAt: Date?
     var cachedAt: Date
 
     var organization: CachedOrganization?
@@ -88,7 +89,8 @@ final class CachedSpace {
         publishedURL: String? = nil,
         parentId: String? = nil,
         createdAt: Date? = nil,
-        updatedAt: Date? = nil
+        updatedAt: Date? = nil,
+        deletedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -100,20 +102,22 @@ final class CachedSpace {
         self.parentId = parentId
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
         self.cachedAt = Date()
     }
 
     /// Update from DTO
     func update(from dto: SpaceDTO) {
         self.title = dto.title
-        self.emoji = dto.emoji
+        self.emoji = dto.emoji?.asEmoji  // Convert hex code to emoji
         self.visibility = dto.visibility.rawValue
         self.spaceType = dto.type?.rawValue
         self.appURL = dto.urls?.app
         self.publishedURL = dto.urls?.published
-        self.parentId = dto.parent?.id
+        self.parentId = dto.parent  // parent is now a String directly
         self.createdAt = dto.createdAt
         self.updatedAt = dto.updatedAt
+        self.deletedAt = dto.deletedAt
         self.cachedAt = Date()
     }
 }
@@ -355,18 +359,19 @@ final class SwiftDataStore {
             let cached = CachedSpace(
                 id: dto.id,
                 title: dto.title,
-                emoji: dto.emoji,
+                emoji: dto.emoji?.asEmoji,  // Convert hex code to emoji
                 visibility: dto.visibility.rawValue,
                 spaceType: dto.type?.rawValue,
                 appURL: dto.urls?.app,
                 publishedURL: dto.urls?.published,
-                parentId: dto.parent?.id,
+                parentId: dto.parent,  // parent is now a String directly
                 createdAt: dto.createdAt,
-                updatedAt: dto.updatedAt
+                updatedAt: dto.updatedAt,
+                deletedAt: dto.deletedAt
             )
 
             // Link to organization if available
-            if let orgId = organizationId ?? dto.organization?.id,
+            if let orgId = organizationId ?? dto.organization,  // organization is now a String directly
                let org = try fetchOrganization(id: orgId) {
                 cached.organization = org
             }

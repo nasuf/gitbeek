@@ -98,6 +98,32 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.listMembers(orgId: orgId, page: page))
     }
 
+    // MARK: - Collections
+
+    /// List collections in organization
+    func listCollections(orgId: String, page: String? = nil) async throws -> CollectionsListDTO {
+        try await client.request(GitBookEndpoint.listCollections(orgId: orgId, page: page))
+    }
+
+    /// Get all collections in organization (handles pagination)
+    func getAllCollections(orgId: String) async throws -> [CollectionDTO] {
+        var allCollections: [CollectionDTO] = []
+        var nextPage: String? = nil
+
+        repeat {
+            let response: CollectionsListDTO = try await listCollections(orgId: orgId, page: nextPage)
+            allCollections.append(contentsOf: response.items)
+            nextPage = response.next?.page
+        } while nextPage != nil
+
+        return allCollections
+    }
+
+    /// Get collection by ID
+    func getCollection(collectionId: String) async throws -> CollectionDTO {
+        try await client.request(GitBookEndpoint.getCollection(collectionId: collectionId))
+    }
+
     // MARK: - Spaces
 
     /// List spaces in organization
@@ -124,9 +150,9 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.getSpace(spaceId: spaceId))
     }
 
-    /// Create new space
-    func createSpace(orgId: String, title: String, emoji: String? = nil, visibility: SpaceVisibility = .private, parent: String? = nil) async throws -> SpaceDTO {
-        let request = SpaceRequestDTO(title: title, emoji: emoji, visibility: visibility, parent: parent)
+    /// Create new space or collection
+    func createSpace(orgId: String, title: String, emoji: String? = nil, visibility: SpaceVisibility = .private, type: SpaceType? = nil, parent: String? = nil) async throws -> SpaceDTO {
+        let request = SpaceRequestDTO(title: title, emoji: emoji, visibility: visibility, type: type, parent: parent)
         return try await client.request(GitBookEndpoint.createSpace(orgId: orgId, request: request))
     }
 
@@ -136,9 +162,14 @@ actor GitBookAPIService {
         return try await client.request(GitBookEndpoint.updateSpace(spaceId: spaceId, request: request))
     }
 
-    /// Delete space
+    /// Delete space (soft delete - moves to trash)
     func deleteSpace(spaceId: String) async throws {
         try await client.requestVoid(GitBookEndpoint.deleteSpace(spaceId: spaceId))
+    }
+
+    /// Restore deleted space from trash
+    func restoreSpace(spaceId: String) async throws -> SpaceDTO {
+        try await client.request(GitBookEndpoint.restoreSpace(spaceId: spaceId))
     }
 
     // MARK: - Content

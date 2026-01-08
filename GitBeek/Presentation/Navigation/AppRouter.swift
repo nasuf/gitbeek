@@ -12,6 +12,7 @@ enum AppDestination: Hashable {
     // Spaces
     case spaceList(organizationId: String)
     case spaceDetail(spaceId: String)
+    case trash(organizationId: String)
 
     // Pages
     case pageDetail(spaceId: String, pageId: String)
@@ -140,6 +141,10 @@ extension View {
         case .spaceDetail(let spaceId):
             // TODO: Implement SpaceDetailView
             Text("Space Detail: \(spaceId)")
+
+        case .trash(let organizationId):
+            // Trash is handled as a sheet in SpaceListView
+            Text("Trash for \(organizationId)")
 
         case .pageDetail(let spaceId, let pageId):
             // TODO: Implement PageDetailView
