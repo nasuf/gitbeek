@@ -67,8 +67,14 @@ final class KeychainManager: @unchecked Sendable {
         try save(key: Keys.accessToken, data: Data(token.utf8))
     }
 
-    /// Get access token
+    /// Get access token (sync version, use when not crossing actor boundaries)
     func getAccessToken() -> String? {
+        guard let data = try? load(key: Keys.accessToken) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    /// Get stored access token (explicitly named to avoid async ambiguity)
+    func getStoredAccessToken() -> String? {
         guard let data = try? load(key: Keys.accessToken) else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -133,8 +139,8 @@ final class KeychainManager: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        // Delete existing item first
-        try? delete(key: key)
+        // Delete existing item first (use internal version to avoid deadlock)
+        try? deleteUnlocked(key: key)
 
         var query = baseQuery(for: key)
         query[kSecValueData as String] = data
@@ -178,7 +184,11 @@ final class KeychainManager: @unchecked Sendable {
     func delete(key: String) throws {
         lock.lock()
         defer { lock.unlock() }
+        try deleteUnlocked(key: key)
+    }
 
+    /// Internal delete without lock (for use within already-locked context)
+    private func deleteUnlocked(key: String) throws {
         let query = baseQuery(for: key)
         let status = SecItemDelete(query as CFDictionary)
 

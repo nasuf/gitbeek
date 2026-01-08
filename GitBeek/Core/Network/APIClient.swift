@@ -57,11 +57,11 @@ actor APIClient {
 
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
-        self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // GitBook API uses camelCase, not snake_case
 
         self.encoder = JSONEncoder()
         self.encoder.dateEncodingStrategy = .iso8601
-        self.encoder.keyEncodingStrategy = .convertToSnakeCase
+        // GitBook API expects camelCase
     }
 
     // MARK: - Configuration
@@ -127,11 +127,7 @@ actor APIClient {
         #endif
 
         // Execute the request
-        let (data, response) = try await performRequest(request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
+        let (data, httpResponse) = try await performRequest(request)
 
         // Log response in debug mode
         #if DEBUG

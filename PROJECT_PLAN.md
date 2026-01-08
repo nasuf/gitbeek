@@ -228,17 +228,17 @@ GitBookiOS/
 ### Phase 2: Authentication & User Management
 
 #### 2.1 Authentication Flow
-- [ ] 实现 LoginView (Liquid Glass 设计)
+- [x] 实现 LoginView (Liquid Glass 设计)
 - [ ] OAuth 2.0 ASWebAuthenticationSession 集成
-- [ ] API Token 输入选项
-- [ ] Keychain token 存储
+- [x] API Token 输入选项
+- [x] Keychain token 存储
 - [ ] 自动 token 刷新机制
-- [ ] 登出功能
+- [x] 登出功能
 - [ ] Session 过期处理
 
 #### 2.2 User Profile
-- [ ] 获取当前用户信息
-- [ ] ProfileView 界面
+- [x] 获取当前用户信息
+- [x] ProfileView 界面
 - [ ] 组织切换器
 - [ ] 账户设置
 
@@ -569,13 +569,13 @@ Button("Action") { }
 ## Testing Strategy
 
 ### Unit Tests
-- [ ] API client tests
+- [x] API client tests
 - [ ] Network interceptor tests
 - [ ] Model serialization tests (Codable)
-- [ ] Keychain storage tests
+- [x] Keychain storage tests
 - [ ] SwiftData tests
 - [ ] Repository tests
-- [ ] ViewModel tests
+- [x] ViewModel tests
 
 ### UI Tests
 - [ ] Login flow tests

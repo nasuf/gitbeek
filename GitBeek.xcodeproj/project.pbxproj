@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,14 +18,25 @@
 		27B1AA82D458A21901F1BACD /* GitBookEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E17B18AC79F494BAC7E9A6 /* GitBookEndpoints.swift */; };
 		2D940B4F094DF6A0C13544D4 /* GitBeekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F9A8FE5A8514830CF3BA29B /* GitBeekApp.swift */; };
 		3453136A3F2E0708307D0CE4 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = 56E0B802E57B70384A92A347 /* Dependencies */; };
+		3B6339FB498BA3B2B5F75C31 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDBCBB578A9A27735742E86 /* APIClientTests.swift */; };
 		3D77FA1EB44222D6B00505E6 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F14413AFF1EC3A30C03C334E /* GlassCard.swift */; };
+		427BE1D00C362BED8DAAC867 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09FDB5710B8F52495114BD3 /* ContentView.swift */; };
 		4415D66F0AFDAA1F0EEDEDB5 /* SpaceDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A93C6FEDE37A523A130F29 /* SpaceDTO.swift */; };
 		45260D94F0CFE18AFF625430 /* UserDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD5F934FE2C59C6A2B8E4082 /* UserDTO.swift */; };
+		46960DA36C1FE0B41DD85EDD /* AuthViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D5DDAE261A8A59B0C36C69 /* AuthViewModelTests.swift */; };
 		474CBB9255ABB5AB7A8F6A61 /* AppTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7763296D290D0C5C31D3F3C4 /* AppTypography.swift */; };
 		48AAF0E2CD40E2680DAE6DAF /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = CEB3428A6BD87A2C321DBDF2 /* Alamofire */; };
 		4B6E47688627CAA6E376CB34 /* LiquidGlassModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA4680F09473E80E92F0692 /* LiquidGlassModifiers.swift */; };
+		5346D024104894AF7518007F /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E28BAD98382D9F464956FA /* AuthViewModel.swift */; };
 		580F037C2725A4CBCC39F62E /* GlassNavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDBD1A5E992101E141FBE86 /* GlassNavigationBar.swift */; };
+		58C087175F54B8009A8E3CDD /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037AA6350B33763673E99E01 /* User.swift */; };
+		59EBB99C353A84EC84660E94 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686B57A8BB1F344AD3316FA9 /* DependencyContainer.swift */; };
 		59F9E11301C9668EAC939045 /* RetryInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E31C0550616001439B3F72 /* RetryInterceptor.swift */; };
+		5C1F06DBC9462DE1E1DAA712 /* UserRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF4FCD81D7A8A114CDB8B81 /* UserRepositoryImpl.swift */; };
+		5D09D8F469048B0247FC87D7 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B1F8436718E7B28C7AEED7 /* ProfileView.swift */; };
+		5F6BA8E7FFF3BE291B4EAF3C /* Space.swift in Sources */ = {isa = PBXBuildFile; fileRef = F039C99F88A7BEF1D476E7CC /* Space.swift */; };
+		6C78379710121269EF7D0191 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7BBB94E4994CE1E9A293430 /* ProfileViewModel.swift */; };
+		7DC57C4721B699922BE92B56 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C64C4EF1DD0480AA9B68760F /* HomeView.swift */; };
 		7F02A6756DE79C92C9D36C40 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ADE673CEBAD21E2E6B66D7 /* KeychainManager.swift */; };
 		81E65F8442B85E570296FE23 /* DesignSystemPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B14B22F6D87AED496018F34D /* DesignSystemPreviewView.swift */; };
 		8727CE2366ED9F6D8472D75D /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0960CF1568FE41A927E1CC7F /* AppColors.swift */; };
@@ -39,10 +50,20 @@
 		ADCBC3A5B9A535D8C3FF401D /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6A46032DD4E285090F5A5C /* CacheManager.swift */; };
 		B2462A21575623ED7D644C0F /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAD73E2942AA526CCA63A42 /* APIEndpoint.swift */; };
 		B73D0D37417B79618E6E52C6 /* ChangeRequestDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E721E292A718EDB96967B7 /* ChangeRequestDTO.swift */; };
+		B8ADD570A7A0EAAAE6E8BD82 /* AuthRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8079BA5C354138809087D1B1 /* AuthRepositoryImpl.swift */; };
 		BAFCA0B52626957D29841E6B /* GlassTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81D13C92410B8C4C74D819D /* GlassTabBar.swift */; };
+		BD9868AB1E578471349AEC22 /* UserRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C437E225459BE8CE0235B6 /* UserRepository.swift */; };
+		BF98A3D177EB1E0EC5ED18B0 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A89F99D734CCA4C620BFF2 /* AppRouter.swift */; };
+		C020501904A6C0C7819E948E /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C2307037D2658BE52BDC54 /* SearchView.swift */; };
+		CEA1A554CBEB9BC5ED87D025 /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DE3A1A6429FEA0EB959E2E /* AuthRepository.swift */; };
 		CF7F2D7C8CAF92B0C302533C /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD20F172843BFB01FEF4D62 /* GlassButton.swift */; };
+		DA07DA53487FED7D34717A26 /* Organization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1F842927B37F4F41EF85E2 /* Organization.swift */; };
 		DC36C317C7E0B9710CE84B81 /* OrganizationDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690C7B51F1CFBAB37CD71464 /* OrganizationDTO.swift */; };
 		E351950CF7E43D15018FB6B8 /* AuthInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F9DD28979A2C424D8C4BFE /* AuthInterceptor.swift */; };
+		E76BE85BE426E5087CF97384 /* OrganizationRepositoryImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399C388EE5609661B2FABACF /* OrganizationRepositoryImpl.swift */; };
+		E86ACB4BFCF453E8E94B7E41 /* KeychainManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */; };
+		E9DC78963D675622F911625B /* OrganizationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686288DB5D53D3FFEBAB8EE9 /* OrganizationRepository.swift */; };
+		F15F681D2DE45DBEF1FB68F6 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93F4AC9104FA9F151DBB0A7 /* LoginView.swift */; };
 		F5BF1D35E171B8840353F442 /* GitBeekTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDB60F1CC7AD74EC5A957AF /* GitBeekTests.swift */; };
 		FE38C6C47C3B4DC820D91DD3 /* LoggingInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0239B22A88AB71CDCCD28198 /* LoggingInterceptor.swift */; };
 /* End PBXBuildFile section */
@@ -59,38 +80,59 @@
 
 /* Begin PBXFileReference section */
 		0239B22A88AB71CDCCD28198 /* LoggingInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingInterceptor.swift; sourceTree = "<group>"; };
+		037AA6350B33763673E99E01 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		08B738188C41B3DB65F20C2E /* SwiftDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataStore.swift; sourceTree = "<group>"; };
 		0960CF1568FE41A927E1CC7F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
-		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManagerTests.swift; sourceTree = "<group>"; };
 		18E17B18AC79F494BAC7E9A6 /* GitBookEndpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitBookEndpoints.swift; sourceTree = "<group>"; };
+		1EDBCBB578A9A27735742E86 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
+		22A89F99D734CCA4C620BFF2 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
+		29C2307037D2658BE52BDC54 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		29D6B54EF56EEAEB81A9214D /* GitBeekTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GitBeekTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30D41DA640C69E065234A916 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		399C388EE5609661B2FABACF /* OrganizationRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationRepositoryImpl.swift; sourceTree = "<group>"; };
 		3F31EB588A53EA0DC967E689 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		49DE3A1A6429FEA0EB959E2E /* AuthRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepository.swift; sourceTree = "<group>"; };
+		4C1F842927B37F4F41EF85E2 /* Organization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Organization.swift; sourceTree = "<group>"; };
 		4DDBD1A5E992101E141FBE86 /* GlassNavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassNavigationBar.swift; sourceTree = "<group>"; };
 		55ADE673CEBAD21E2E6B66D7 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		59C437E225459BE8CE0235B6 /* UserRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRepository.swift; sourceTree = "<group>"; };
 		6438FFB85274DA5A3994FDB3 /* TokenResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenResponse.swift; sourceTree = "<group>"; };
 		65E721E292A718EDB96967B7 /* ChangeRequestDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeRequestDTO.swift; sourceTree = "<group>"; };
+		686288DB5D53D3FFEBAB8EE9 /* OrganizationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationRepository.swift; sourceTree = "<group>"; };
+		686B57A8BB1F344AD3316FA9 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
 		68E31C0550616001439B3F72 /* RetryInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryInterceptor.swift; sourceTree = "<group>"; };
 		690C7B51F1CFBAB37CD71464 /* OrganizationDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationDTO.swift; sourceTree = "<group>"; };
 		6BA4680F09473E80E92F0692 /* LiquidGlassModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassModifiers.swift; sourceTree = "<group>"; };
 		6CD20F172843BFB01FEF4D62 /* GlassButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassButton.swift; sourceTree = "<group>"; };
 		6F9A8FE5A8514830CF3BA29B /* GitBeekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitBeekApp.swift; sourceTree = "<group>"; };
 		7763296D290D0C5C31D3F3C4 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
+		8079BA5C354138809087D1B1 /* AuthRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryImpl.swift; sourceTree = "<group>"; };
 		82F9DD28979A2C424D8C4BFE /* AuthInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthInterceptor.swift; sourceTree = "<group>"; };
 		8C90A40046049C9E170A6B98 /* GlassAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassAnimations.swift; sourceTree = "<group>"; };
 		8FD53491F181FE3B04651C4A /* GlassToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassToolbar.swift; sourceTree = "<group>"; };
+		94E28BAD98382D9F464956FA /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		9876D50F6E1325B95DED673C /* GitBookAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitBookAPIService.swift; sourceTree = "<group>"; };
 		9A5984B945BBB5D420C23FBD /* AppSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSpacing.swift; sourceTree = "<group>"; };
+		9EF4FCD81D7A8A114CDB8B81 /* UserRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRepositoryImpl.swift; sourceTree = "<group>"; };
 		AEB34AB6889D60BB4F02CDBB /* GlassSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassSheet.swift; sourceTree = "<group>"; };
 		B14B22F6D87AED496018F34D /* DesignSystemPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemPreviewView.swift; sourceTree = "<group>"; };
 		B7A93C6FEDE37A523A130F29 /* SpaceDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceDTO.swift; sourceTree = "<group>"; };
+		C09FDB5710B8F52495114BD3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C64C4EF1DD0480AA9B68760F /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D7BBB94E4994CE1E9A293430 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		DD5F934FE2C59C6A2B8E4082 /* UserDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDTO.swift; sourceTree = "<group>"; };
 		DFAD73E2942AA526CCA63A42 /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
+		E4D5DDAE261A8A59B0C36C69 /* AuthViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModelTests.swift; sourceTree = "<group>"; };
 		E81D13C92410B8C4C74D819D /* GlassTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassTabBar.swift; sourceTree = "<group>"; };
 		ED6B9D23DDA2F28373237467 /* ContentDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentDTO.swift; sourceTree = "<group>"; };
 		EE6A46032DD4E285090F5A5C /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
+		F039C99F88A7BEF1D476E7CC /* Space.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Space.swift; sourceTree = "<group>"; };
 		F14413AFF1EC3A30C03C334E /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
+		F1B1F8436718E7B28C7AEED7 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		F6F3A69D20658B093494BEFB /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		F93F4AC9104FA9F151DBB0A7 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F98A13B5C8AF2AF87E236E58 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FCC799BDDF2EFE0658A87FFF /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		FDDB60F1CC7AD74EC5A957AF /* GitBeekTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitBeekTests.swift; sourceTree = "<group>"; };
@@ -115,6 +157,9 @@
 		05DB26DD143297D32D591897 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				8079BA5C354138809087D1B1 /* AuthRepositoryImpl.swift */,
+				399C388EE5609661B2FABACF /* OrganizationRepositoryImpl.swift */,
+				9EF4FCD81D7A8A114CDB8B81 /* UserRepositoryImpl.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -156,7 +201,10 @@
 		23A57C4F4ECBC3F70F310294 /* GitBeekTests */ = {
 			isa = PBXGroup;
 			children = (
+				1EDBCBB578A9A27735742E86 /* APIClientTests.swift */,
+				E4D5DDAE261A8A59B0C36C69 /* AuthViewModelTests.swift */,
 				FDDB60F1CC7AD74EC5A957AF /* GitBeekTests.swift */,
+				0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */,
 			);
 			path = GitBeekTests;
 			sourceTree = "<group>";
@@ -196,6 +244,9 @@
 		40949C33B3FDE255B429F51C /* Entities */ = {
 			isa = PBXGroup;
 			children = (
+				4C1F842927B37F4F41EF85E2 /* Organization.swift */,
+				F039C99F88A7BEF1D476E7CC /* Space.swift */,
+				037AA6350B33763673E99E01 /* User.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -203,6 +254,9 @@
 		416E13AFB9A6B27C3DB6B809 /* Repositories */ = {
 			isa = PBXGroup;
 			children = (
+				49DE3A1A6429FEA0EB959E2E /* AuthRepository.swift */,
+				686288DB5D53D3FFEBAB8EE9 /* OrganizationRepository.swift */,
+				59C437E225459BE8CE0235B6 /* UserRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -210,6 +264,7 @@
 		50DFFBD459F1678105150B14 /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
+				22A89F99D734CCA4C620BFF2 /* AppRouter.swift */,
 			);
 			path = Navigation;
 			sourceTree = "<group>";
@@ -234,6 +289,7 @@
 		5CD91248D45E2461BB9210C0 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				F93F4AC9104FA9F151DBB0A7 /* LoginView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -270,6 +326,7 @@
 			isa = PBXGroup;
 			children = (
 				2D79E372F7A16416BF177B4A /* Configuration */,
+				686B57A8BB1F344AD3316FA9 /* DependencyContainer.swift */,
 				6F9A8FE5A8514830CF3BA29B /* GitBeekApp.swift */,
 			);
 			path = App;
@@ -321,6 +378,7 @@
 				EC0F724831F9BE5190DF90FB /* Profile */,
 				DA4EBA5E7E98280725439CB0 /* Search */,
 				8F104338BF94EB311E04F69B /* Spaces */,
+				C09FDB5710B8F52495114BD3 /* ContentView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -368,6 +426,8 @@
 		B1B3F6E9C96E8DB8E5755AFA /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				94E28BAD98382D9F464956FA /* AuthViewModel.swift */,
+				D7BBB94E4994CE1E9A293430 /* ProfileViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -397,6 +457,7 @@
 		DA4EBA5E7E98280725439CB0 /* Search */ = {
 			isa = PBXGroup;
 			children = (
+				29C2307037D2658BE52BDC54 /* SearchView.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -453,6 +514,7 @@
 		EC0F724831F9BE5190DF90FB /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				F1B1F8436718E7B28C7AEED7 /* ProfileView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -473,6 +535,7 @@
 		F9AC2531CEC4CBBCFCFC0682 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				C64C4EF1DD0480AA9B68760F /* HomeView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -536,7 +599,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					63D8A9991F6D8AFC3AF4A5CA = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -558,7 +620,6 @@
 				172100AFCC51349E77BBDE81 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -584,7 +645,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B6339FB498BA3B2B5F75C31 /* APIClientTests.swift in Sources */,
+				46960DA36C1FE0B41DD85EDD /* AuthViewModelTests.swift in Sources */,
 				F5BF1D35E171B8840353F442 /* GitBeekTests.swift in Sources */,
+				E86ACB4BFCF453E8E94B7E41 /* KeychainManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,12 +660,18 @@
 				B2462A21575623ED7D644C0F /* APIEndpoint.swift in Sources */,
 				1D041E5043F776326A901968 /* APIError.swift in Sources */,
 				8727CE2366ED9F6D8472D75D /* AppColors.swift in Sources */,
+				BF98A3D177EB1E0EC5ED18B0 /* AppRouter.swift in Sources */,
 				04DCA395FDB64673C7D67F89 /* AppSpacing.swift in Sources */,
 				474CBB9255ABB5AB7A8F6A61 /* AppTypography.swift in Sources */,
 				E351950CF7E43D15018FB6B8 /* AuthInterceptor.swift in Sources */,
+				CEA1A554CBEB9BC5ED87D025 /* AuthRepository.swift in Sources */,
+				B8ADD570A7A0EAAAE6E8BD82 /* AuthRepositoryImpl.swift in Sources */,
+				5346D024104894AF7518007F /* AuthViewModel.swift in Sources */,
 				ADCBC3A5B9A535D8C3FF401D /* CacheManager.swift in Sources */,
 				B73D0D37417B79618E6E52C6 /* ChangeRequestDTO.swift in Sources */,
 				914BD7A3E4B4B4FBEFD7C639 /* ContentDTO.swift in Sources */,
+				427BE1D00C362BED8DAAC867 /* ContentView.swift in Sources */,
+				59EBB99C353A84EC84660E94 /* DependencyContainer.swift in Sources */,
 				81E65F8442B85E570296FE23 /* DesignSystemPreviewView.swift in Sources */,
 				12ABB7904F8FCF62D16D4C03 /* Environment.swift in Sources */,
 				2D940B4F094DF6A0C13544D4 /* GitBeekApp.swift in Sources */,
@@ -614,15 +684,27 @@
 				9E9B8F60E8AD9E5B237C0CB6 /* GlassSheet.swift in Sources */,
 				BAFCA0B52626957D29841E6B /* GlassTabBar.swift in Sources */,
 				A477985AE915E68F071AD3AB /* GlassToolbar.swift in Sources */,
+				7DC57C4721B699922BE92B56 /* HomeView.swift in Sources */,
 				7F02A6756DE79C92C9D36C40 /* KeychainManager.swift in Sources */,
 				4B6E47688627CAA6E376CB34 /* LiquidGlassModifiers.swift in Sources */,
 				FE38C6C47C3B4DC820D91DD3 /* LoggingInterceptor.swift in Sources */,
+				F15F681D2DE45DBEF1FB68F6 /* LoginView.swift in Sources */,
+				DA07DA53487FED7D34717A26 /* Organization.swift in Sources */,
 				DC36C317C7E0B9710CE84B81 /* OrganizationDTO.swift in Sources */,
+				E9DC78963D675622F911625B /* OrganizationRepository.swift in Sources */,
+				E76BE85BE426E5087CF97384 /* OrganizationRepositoryImpl.swift in Sources */,
+				5D09D8F469048B0247FC87D7 /* ProfileView.swift in Sources */,
+				6C78379710121269EF7D0191 /* ProfileViewModel.swift in Sources */,
 				59F9E11301C9668EAC939045 /* RetryInterceptor.swift in Sources */,
+				C020501904A6C0C7819E948E /* SearchView.swift in Sources */,
+				5F6BA8E7FFF3BE291B4EAF3C /* Space.swift in Sources */,
 				4415D66F0AFDAA1F0EEDEDB5 /* SpaceDTO.swift in Sources */,
 				11DBBDB7ABC76959589A87B1 /* SwiftDataStore.swift in Sources */,
 				0C084C9B931E5DEB8B08F75D /* TokenResponse.swift in Sources */,
+				58C087175F54B8009A8E3CDD /* User.swift in Sources */,
 				45260D94F0CFE18AFF625430 /* UserDTO.swift in Sources */,
+				BD9868AB1E578471349AEC22 /* UserRepository.swift in Sources */,
+				5C1F06DBC9462DE1E1DAA712 /* UserRepositoryImpl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -753,7 +835,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P44Z8JVBHV;
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -772,7 +854,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P44Z8JVBHV;
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

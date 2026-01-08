@@ -56,10 +56,11 @@ final class GitBeekTests: XCTestCase {
 
     // MARK: - Performance Tests
 
-    func testAppStateCreationPerformance() throws {
+    func testEnvironmentConfigurationPerformance() throws {
         measure {
             for _ in 0..<1000 {
-                _ = AppState()
+                _ = AppEnvironment.development
+                _ = AppEnvironment.production
             }
         }
     }

@@ -57,20 +57,27 @@ enum AppEnvironment: String, CaseIterable {
 }
 
 /// App configuration singleton
-@MainActor
-final class AppConfig {
+final class AppConfig: Sendable {
     static let shared = AppConfig()
 
-    private(set) var environment: AppEnvironment = .development
+    let environment: AppEnvironment = .development
 
     private init() {}
 
-    func configure(for environment: AppEnvironment) {
-        self.environment = environment
-    }
-
     var apiBaseURL: URL { environment.apiBaseURL }
-    var oauthClientID: String { environment.oauthClientID }
-    var oauthRedirectURI: String { environment.oauthRedirectURI }
+    var gitbookClientId: String { environment.oauthClientID }
+    var oauthRedirectUri: String { environment.oauthRedirectURI }
     var isDebugLoggingEnabled: Bool { environment.isDebugLoggingEnabled }
+
+    /// GitBook OAuth authorization URL
+    var oauthAuthorizationURL: URL {
+        var components = URLComponents(string: "https://app.gitbook.com/oauth")!
+        components.queryItems = [
+            URLQueryItem(name: "client_id", value: gitbookClientId),
+            URLQueryItem(name: "redirect_uri", value: oauthRedirectUri),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "scope", value: "admin")
+        ]
+        return components.url!
+    }
 }

@@ -200,8 +200,7 @@ final class CachedUser {
         self.displayName = dto.displayName
         self.email = dto.email
         self.photoURL = dto.photoURL
-        self.createdAt = dto.createdAt
-        self.updatedAt = dto.updatedAt
+        // createdAt and updatedAt not available in CurrentUserDTO
         self.cachedAt = Date()
     }
 }
@@ -411,8 +410,8 @@ final class SwiftDataStore {
                 displayName: dto.displayName,
                 email: dto.email,
                 photoURL: dto.photoURL,
-                createdAt: dto.createdAt,
-                updatedAt: dto.updatedAt
+                createdAt: nil,
+                updatedAt: nil
             )
             context.insert(cached)
             return cached

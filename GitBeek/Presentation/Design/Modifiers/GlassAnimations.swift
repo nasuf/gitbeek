@@ -120,6 +120,7 @@ extension View {
 // MARK: - Haptic Feedback
 
 /// Haptic feedback utilities
+@MainActor
 enum HapticFeedback {
     static func light() {
         let generator = UIImpactFeedbackGenerator(style: .light)

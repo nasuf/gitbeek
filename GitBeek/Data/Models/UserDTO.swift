@@ -14,8 +14,11 @@ struct CurrentUserDTO: Codable, Equatable, Sendable {
     let displayName: String
     let email: String?
     let photoURL: String?
-    let createdAt: Date?
-    let updatedAt: Date?
+    let urls: UserURLsDTO?
+
+    struct UserURLsDTO: Codable, Equatable, Sendable {
+        let location: String?
+    }
 
     enum CodingKeys: String, CodingKey {
         case object
@@ -23,8 +26,7 @@ struct CurrentUserDTO: Codable, Equatable, Sendable {
         case displayName
         case email
         case photoURL = "photoUrl"
-        case createdAt
-        case updatedAt
+        case urls
     }
 }
 
@@ -41,6 +43,11 @@ struct UserReferenceDTO: Codable, Equatable, Sendable {
         case displayName
         case photoURL = "photoUrl"
     }
+}
+
+/// Organization membership response
+struct OrganizationMembershipDTO: Codable, Sendable {
+    let role: String
 }
 
 /// Organization member
