@@ -26,7 +26,8 @@ actor GitBookAPIService {
             interceptors: [
                 LoggingInterceptor(logLevel: environment.isDebugLoggingEnabled ? .body : .none),
                 RetryInterceptor(),
-                NetworkActivityInterceptor()
+                NetworkActivityInterceptor(),
+                SessionExpiredInterceptor.shared
             ]
         )
 

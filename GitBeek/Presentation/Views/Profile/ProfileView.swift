@@ -47,17 +47,16 @@ struct ProfileView: View {
             .sheet(isPresented: $showOrganizationPicker) {
                 OrganizationPickerView()
             }
-            .confirmationDialog(
+            .alert(
                 "Sign Out",
-                isPresented: $showLogoutConfirmation,
-                titleVisibility: .visible
+                isPresented: $showLogoutConfirmation
             ) {
+                Button("Cancel", role: .cancel) {}
                 Button("Sign Out", role: .destructive) {
                     Task {
                         await authViewModel.logout()
                     }
                 }
-                Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Are you sure you want to sign out?")
             }

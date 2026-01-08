@@ -132,21 +132,37 @@ struct LoginView: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
 
-            GlassButton(
-                "Sign In",
-                systemImage: "key.fill",
-                isProminent: true
-            ) {
+            Button {
                 Task {
                     await authViewModel.loginWithToken()
                 }
+            } label: {
+                HStack(spacing: AppSpacing.sm) {
+                    if authViewModel.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "key.fill")
+                    }
+                    Text(authViewModel.isLoading ? "Signing In..." : "Sign In")
+                }
+                .font(AppTypography.bodyLarge)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+                .background(
+                    LinearGradient(
+                        colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium))
+                .opacity(vm.apiToken.isEmpty || authViewModel.isLoading ? 0.6 : 1.0)
             }
             .disabled(vm.apiToken.isEmpty || authViewModel.isLoading)
-            .overlay {
-                if authViewModel.isLoading {
-                    ProgressView()
-                }
-            }
+            .animation(.easeInOut(duration: 0.2), value: authViewModel.isLoading)
 
             // Help link - points to GitBook Developer Settings
             Link(destination: URL(string: "https://app.gitbook.com/account/developer")!) {

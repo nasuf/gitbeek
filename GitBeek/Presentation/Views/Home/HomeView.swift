@@ -14,6 +14,10 @@ struct HomeView: View {
     @Environment(ProfileViewModel.self) private var profileViewModel
     @Environment(AppRouter.self) private var router
 
+    // MARK: - State
+
+    @State private var showOrganizationPicker = false
+
     // MARK: - Body
 
     var body: some View {
@@ -41,8 +45,14 @@ struct HomeView: View {
             .refreshable {
                 await profileViewModel.refresh()
             }
+            .task {
+                await profileViewModel.loadAll()
+            }
             .navigationDestination(for: AppDestination.self) { destination in
                 destinationView(for: destination)
+            }
+            .sheet(isPresented: $showOrganizationPicker) {
+                OrganizationPickerView()
             }
         }
     }
@@ -86,7 +96,7 @@ struct HomeView: View {
 
                     // Switch organization button
                     Button {
-                        router.switchTab(to: .profile)
+                        showOrganizationPicker = true
                     } label: {
                         Image(systemName: "chevron.down.circle")
                             .font(.title2)

@@ -229,18 +229,16 @@ GitBookiOS/
 
 #### 2.1 Authentication Flow
 - [x] 实现 LoginView (Liquid Glass 设计)
-- [ ] OAuth 2.0 ASWebAuthenticationSession 集成
-- [x] API Token 输入选项
+- [x] API Token 输入选项 (GitBook 仅支持 Personal Access Token，无 OAuth)
 - [x] Keychain token 存储
-- [ ] 自动 token 刷新机制
 - [x] 登出功能
-- [ ] Session 过期处理
+- [x] Session 过期处理 (401 错误时自动登出)
 
 #### 2.2 User Profile
 - [x] 获取当前用户信息
 - [x] ProfileView 界面
-- [ ] 组织切换器
-- [ ] 账户设置
+- [x] 组织切换器
+- [x] 账户设置
 
 ---
 
@@ -570,12 +568,12 @@ Button("Action") { }
 
 ### Unit Tests
 - [x] API client tests
-- [ ] Network interceptor tests
+- [x] Network interceptor tests (SessionExpiredInterceptor)
 - [ ] Model serialization tests (Codable)
 - [x] Keychain storage tests
 - [ ] SwiftData tests
 - [ ] Repository tests
-- [x] ViewModel tests
+- [x] ViewModel tests (AuthViewModel, ProfileViewModel)
 
 ### UI Tests
 - [ ] Login flow tests

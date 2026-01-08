@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct GitBeekApp: App {
@@ -53,6 +54,12 @@ struct RootView: View {
         }
         .task {
             await authViewModel.checkAuthState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sessionExpired)) { _ in
+            // Handle session expiration - logout automatically
+            Task {
+                await authViewModel.logout()
+            }
         }
     }
 
