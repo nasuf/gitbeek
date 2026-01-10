@@ -69,32 +69,58 @@ struct GlassEffectModifier: ViewModifier {
 // MARK: - Fallback Glass Background (Pre-iOS 26)
 
 /// Fallback glass effect for iOS versions before 26
+/// Uses native iOS materials and gradients to simulate glass effect
 struct GlassFallbackBackground: View {
     let cornerRadius: CGFloat
     let tint: Color?
 
     var body: some View {
         ZStack {
-            // Base blur effect
+            // Base blur effect using UltraThinMaterial
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(.ultraThinMaterial)
 
-            // Optional tint overlay
+            // Optional tint overlay with improved opacity
             if let tint = tint {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(tint.opacity(0.1))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                tint.opacity(0.15),
+                                tint.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
 
-            // Subtle border
+            // Enhanced border with better visibility
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0.1)
+                            Color.white.opacity(0.4),
+                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.05)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+
+            // Inner highlight for depth
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .inset(by: 0.5)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.15),
+                            Color.clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .center
                     ),
                     lineWidth: 0.5
                 )

@@ -151,15 +151,19 @@ struct HomeView: View {
                     icon: "plus.circle",
                     color: AppColors.success
                 ) {
-                    if let orgId = profileViewModel.selectedOrganization?.id {
-                        spaceListViewModel = SpaceListViewModel(
-                            spaceRepository: DependencyContainer.shared.spaceRepository
-                        )
-                        Task {
-                            await spaceListViewModel?.loadSpaces(organizationId: orgId)
-                        }
-                        showCreateSpace = true
+                    guard let orgId = profileViewModel.selectedOrganization?.id else {
+                        #if DEBUG
+                        print("[HomeView] Cannot create space: No organization selected")
+                        #endif
+                        return
                     }
+                    spaceListViewModel = SpaceListViewModel(
+                        spaceRepository: DependencyContainer.shared.spaceRepository
+                    )
+                    Task {
+                        await spaceListViewModel?.loadSpaces(organizationId: orgId)
+                    }
+                    showCreateSpace = true
                 }
 
                 QuickActionButton(
@@ -184,11 +188,16 @@ struct HomeView: View {
                 Spacer()
 
                 Button("See All") {
-                    if let orgId = profileViewModel.selectedOrganization?.id {
-                        router.navigate(to: .spaceList(organizationId: orgId))
+                    guard let orgId = profileViewModel.selectedOrganization?.id else {
+                        #if DEBUG
+                        print("[HomeView] Cannot navigate to space list: No organization selected")
+                        #endif
+                        return
                     }
+                    router.navigate(to: .spaceList(organizationId: orgId))
                 }
                 .font(AppTypography.bodyMedium)
+                .contentShape(Rectangle())
             }
             .padding(.horizontal, AppSpacing.sm)
 
@@ -230,9 +239,13 @@ struct HomeView: View {
 
     private var allSpacesButton: some View {
         GlassButton("View All Spaces", systemImage: "square.grid.2x2") {
-            if let orgId = profileViewModel.selectedOrganization?.id {
-                router.navigate(to: .spaceList(organizationId: orgId))
+            guard let orgId = profileViewModel.selectedOrganization?.id else {
+                #if DEBUG
+                print("[HomeView] Cannot view all spaces: No organization selected")
+                #endif
+                return
             }
+            router.navigate(to: .spaceList(organizationId: orgId))
         }
     }
 
@@ -279,6 +292,8 @@ private struct QuickActionButton: View {
     let color: Color
     let action: () -> Void
 
+    @State private var isPressed = false
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: AppSpacing.sm) {
@@ -296,8 +311,22 @@ private struct QuickActionButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.md)
             .glassStyle(cornerRadius: AppSpacing.cornerRadiusMedium)
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .opacity(isPressed ? 0.8 : 1.0)
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isPressed {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    isPressed = false
+                }
+        )
     }
 }
 

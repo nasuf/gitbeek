@@ -56,7 +56,31 @@ actor APIClient {
         self.interceptors = interceptors
 
         self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .iso8601
+        // GitBook API returns ISO8601 dates with fractional seconds
+        // Use custom strategy to support multiple ISO8601 formats
+        self.decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+
+            // Try with fractional seconds first
+            let formatterWithFractional = ISO8601DateFormatter()
+            formatterWithFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatterWithFractional.date(from: dateString) {
+                return date
+            }
+
+            // Fallback to standard ISO8601 without fractional seconds
+            let formatterStandard = ISO8601DateFormatter()
+            formatterStandard.formatOptions = [.withInternetDateTime]
+            if let date = formatterStandard.date(from: dateString) {
+                return date
+            }
+
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Cannot decode date string '\(dateString)'. Expected ISO8601 format (with or without fractional seconds)."
+            )
+        }
         // GitBook API uses camelCase, not snake_case
 
         self.encoder = JSONEncoder()
@@ -219,3 +243,4 @@ private extension Dictionary where Key == String, Value == String {
         return result
     }
 }
+

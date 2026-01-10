@@ -90,9 +90,65 @@ final class ProfileViewModel {
 
     /// Load all profile data
     func loadAll() async {
+        isLoading = true
+        error = nil
+
         await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.loadUser() }
-            group.addTask { await self.loadOrganizations() }
+            group.addTask { await self.loadUserInternal() }
+            group.addTask { await self.loadOrganizationsInternal() }
+        }
+
+        #if DEBUG
+        print("[ProfileViewModel] loadAll() completed - User: \(user?.displayName ?? "nil"), Orgs: \(organizations.count), Selected: \(selectedOrganization?.title ?? "nil")")
+        #endif
+
+        isLoading = false
+    }
+
+    /// Internal user loading without isLoading state management
+    private func loadUserInternal() async {
+        // Try cached user first
+        if let cachedUser = await userRepository.getCachedUser() {
+            user = cachedUser
+        }
+
+        // Fetch fresh data
+        do {
+            user = try await userRepository.getCurrentUser()
+        } catch {
+            if user == nil {
+                self.error = error
+            }
+            #if DEBUG
+            print("[ProfileViewModel] Failed to load user: \(error)")
+            #endif
+        }
+    }
+
+    /// Internal organizations loading without isLoading state management
+    private func loadOrganizationsInternal() async {
+        // Try cached organizations first
+        let cachedOrgs = await organizationRepository.getCachedOrganizations()
+        if !cachedOrgs.isEmpty {
+            organizations = cachedOrgs
+            if selectedOrganization == nil {
+                selectedOrganization = cachedOrgs.first
+            }
+        }
+
+        // Fetch fresh data
+        do {
+            organizations = try await organizationRepository.getOrganizations()
+            if selectedOrganization == nil {
+                selectedOrganization = organizations.first
+            }
+        } catch {
+            if organizations.isEmpty {
+                self.error = error
+            }
+            #if DEBUG
+            print("[ProfileViewModel] Failed to load organizations: \(error)")
+            #endif
         }
     }
 
@@ -152,3 +208,4 @@ extension ProfileViewModel {
         organizations.count
     }
 }
+

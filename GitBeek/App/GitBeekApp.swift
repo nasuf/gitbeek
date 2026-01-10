@@ -341,10 +341,8 @@ struct RootView: View {
 
             case .authenticated:
                 // Main content
-                GlassEffectContainer {
-                    ContentView()
-                }
-                .transition(.opacity)
+                ContentView()
+                    .transition(.opacity)
 
             case .unauthenticated:
                 // Login screen

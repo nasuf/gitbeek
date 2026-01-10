@@ -185,6 +185,7 @@ GitBookiOS/
 - [x] 实现 AuthInterceptor (Bearer token injection)
 - [x] 实现 RetryInterceptor (指数退避重试)
 - [x] 实现 LoggingInterceptor (DEBUG 模式日志)
+- [x] ISO8601 日期解码支持（含小数秒）
 
 #### 1.3 GitBook API Client
 - [x] 定义 API 端点常量
@@ -262,6 +263,8 @@ GitBookiOS/
 - [x] 最近访问空间快速入口
 - [x] 搜索栏 (`.searchable` with Liquid Glass)
 - [x] Pull-to-refresh (`.refreshable`)
+- [x] iOS 18+ 兼容性优化（移除 GlassEffectContainer）
+- [x] 按钮交互优化（视觉反馈、触摸区域）
 
 #### 3.2 Spaces Management
 - [x] SpaceListView (Grid/List 切换)
@@ -634,6 +637,8 @@ dependencies: [
 - GitBook 内部使用自定义 JSON 格式，markdown 作为导出格式
 - 离线冲突处理：实现 last-write-wins 或手动合并
 - iOS 26 最低版本要求：确保用户群体覆盖（考虑 iOS 17+ 降级方案）
+- **iOS 18-25 兼容性**: 应用已完全适配 iOS 18+，通过 `.ultraThinMaterial` fallback 提供一致体验
+- **GitBook API 日期格式**: 支持 ISO8601 标准格式及带小数秒的扩展格式
 
 ---
 

@@ -114,8 +114,10 @@ struct GlassButton: View {
                 Text(title)
             }
             .font(AppTypography.labelLarge)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(GlassButtonStyle(tint: tint, isProminent: isProminent))
+        .contentShape(Rectangle())
     }
 }
 
