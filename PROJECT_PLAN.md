@@ -239,6 +239,12 @@ GitBookiOS/
 - [x] Keychain token 存储
 - [x] 登出功能
 - [x] Session 过期处理 (401 错误时自动登出)
+- [x] iOS 26 键盘初始化 Bug 修复 (Onboarding + Keyboard Warmup)
+- [x] UIKit TextField 集成解决键盘响应问题
+  - [x] NativeTextField 实现 (UIViewRepresentable)
+  - [x] 布局约束修复 (防止长文本撑开布局)
+  - [x] Auto Layout 优先级配置
+- [x] 三页交互式 Onboarding 引导流程
 
 #### 2.2 User Profile
 - [x] 获取当前用户信息

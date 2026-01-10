@@ -2,194 +2,166 @@
 //  LoginView.swift
 //  GitBeek
 //
-//  Login screen with Liquid Glass design
+//  Liquid Glass Login - iOS 17 Keyboard Bug Workaround
+//  See: https://developer.apple.com/forums/thread/731700
+//  See: https://www.hackingwithswift.com/forums/swiftui/gesture-system-gesture-gate-timed-out/25114
 //
 
 import SwiftUI
 
-/// Login view with API token authentication
+/// Login view with liquid glass design
+/// Uses VStack (not LazyVStack) to avoid iOS 17 keyboard bugs
+/// Keyboard warmup happens at app level before this view appears
 struct LoginView: View {
-    // MARK: - Environment
-
     @Environment(AuthViewModel.self) private var authViewModel
-
-    // MARK: - Body
+    @State private var isTokenVisible = false
 
     var body: some View {
         @Bindable var viewModel = authViewModel
 
-        GeometryReader { _ in
-            ZStack {
-                // Background gradient
-                backgroundGradient
+        // iOS 17 Fix: Use simple ScrollView + VStack (NOT LazyVStack, NOT Form)
+        ScrollView {
+            VStack(spacing: 32) {
+                // Top spacing
+                Color.clear.frame(height: 60)
 
-                // Content
-                VStack(spacing: AppSpacing.xl) {
-                    Spacer()
+                // Branding
+                VStack(spacing: 20) {
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 60))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: AppColors.primaryFallback.opacity(0.3), radius: 15)
 
-                    // App branding
-                    brandingSection
+                    VStack(spacing: 8) {
+                        Text("Welcome to GitBeek")
+                            .font(.title2)
+                            .fontWeight(.bold)
 
-                    Spacer()
+                        Text("Sign in with your GitBook API token")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
 
-                    // Login options
-                    loginOptionsSection(viewModel: viewModel)
-
-                    Spacer()
-
-                    // Footer
-                    footerSection
-                }
-                .padding(.horizontal, AppSpacing.xl)
-                .frame(maxWidth: 400)
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .alert("Error", isPresented: .constant(authViewModel.hasError)) {
-            Button("OK") {
-                authViewModel.clearError()
-            }
-        } message: {
-            Text(authViewModel.errorMessage ?? "An unknown error occurred.")
-        }
-    }
-
-    // MARK: - Background
-
-    private var backgroundGradient: some View {
-        LinearGradient(
-            colors: [
-                AppColors.primaryFallback.opacity(0.3),
-                AppColors.secondaryFallback.opacity(0.2),
-                Color(.systemBackground)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-    }
-
-    // MARK: - Branding Section
-
-    private var brandingSection: some View {
-        VStack(spacing: AppSpacing.lg) {
-            // App icon
-            Image(systemName: "book.closed.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: AppColors.primaryFallback.opacity(0.3), radius: 20, y: 10)
-
-            VStack(spacing: AppSpacing.sm) {
-                Text("GitBeek")
-                    .font(AppTypography.displayLarge)
-                    .fontWeight(.bold)
-
-                Text("Your GitBook companion")
-                    .font(AppTypography.bodyLarge)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    // MARK: - Login Options Section
-
-    @ViewBuilder
-    private func loginOptionsSection(viewModel: AuthViewModel) -> some View {
-        tokenInputSection(viewModel: viewModel)
-            .padding(AppSpacing.xl)
-            .glassStyle(cornerRadius: AppSpacing.cornerRadiusMedium)
-    }
-
-    // MARK: - Token Input Section
-
-    @ViewBuilder
-    private func tokenInputSection(viewModel: AuthViewModel) -> some View {
-        @Bindable var vm = viewModel
-
-        VStack(spacing: AppSpacing.lg) {
-            VStack(spacing: AppSpacing.xs) {
-                Text("Enter your GitBook API token")
-                    .font(AppTypography.bodyLarge)
-                    .foregroundStyle(.primary)
-
-                Text("Get your token from GitBook Developer Settings")
-                    .font(AppTypography.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            SecureField("API Token", text: $vm.apiToken)
-                .textFieldStyle(.plain)
-                .padding(AppSpacing.md)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-            Button {
-                Task {
-                    await authViewModel.loginWithToken()
-                }
-            } label: {
-                HStack(spacing: AppSpacing.sm) {
-                    if authViewModel.isLoading {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Image(systemName: "key.fill")
+                        Text("v6.1 - Interactive Onboarding")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 4)
                     }
-                    Text(authViewModel.isLoading ? "Signing In..." : "Sign In")
                 }
-                .font(AppTypography.bodyLarge)
-                .fontWeight(.semibold)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.md)
-                .background(
-                    LinearGradient(
-                        colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
-                        startPoint: .leading,
-                        endPoint: .trailing
+
+                // Input Card
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("API Token")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    // UIKit-based TextField - fixes keyboard issues
+                    NativeTokenInput(
+                        text: $viewModel.apiToken,
+                        isVisible: $isTokenVisible,
+                        onSubmit: {
+                            if !viewModel.apiToken.isEmpty {
+                                Task { await authViewModel.loginWithToken() }
+                            }
+                        }
                     )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium))
-                .opacity(vm.apiToken.isEmpty || authViewModel.isLoading ? 0.6 : 1.0)
-            }
-            .disabled(vm.apiToken.isEmpty || authViewModel.isLoading)
-            .animation(.easeInOut(duration: 0.2), value: authViewModel.isLoading)
 
-            // Help link - points to GitBook Developer Settings
-            Link(destination: URL(string: "https://app.gitbook.com/account/developer")!) {
-                Label("Open GitBook Developer Settings", systemImage: "arrow.up.right.square")
-                    .font(AppTypography.caption)
+                    // Help text
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your token is stored securely and never shared")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Link(destination: URL(string: "https://app.gitbook.com/account/developer")!) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "link.circle.fill")
+                                Text("Get your token from Developer Settings")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(AppColors.primaryFallback)
+                        }
+                    }
+
+                    // Sign In Button
+                    Button {
+                        Task { await authViewModel.loginWithToken() }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if authViewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .scaleEffect(0.9)
+                            } else {
+                                Image(systemName: "arrow.right.circle.fill")
+                            }
+                            Text(authViewModel.isLoading ? "Signing In..." : "Sign In")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .opacity(viewModel.apiToken.isEmpty || authViewModel.isLoading ? 0.6 : 1.0)
+                    }
+                    .disabled(viewModel.apiToken.isEmpty || authViewModel.isLoading)
+                    .padding(.top, 8)
+                }
+                .padding(24)
+                .background(.regularMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.1), radius: 20)
+                .padding(.horizontal, 24)
+
+                // Footer
+                VStack(spacing: 12) {
+                    Text("By signing in, you agree to our")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+
+                    HStack(spacing: 12) {
+                        Link("Terms", destination: URL(string: "https://gitbook.com/terms")!)
+                        Text("•").foregroundStyle(.tertiary)
+                        Link("Privacy", destination: URL(string: "https://gitbook.com/privacy")!)
+                    }
+                    .font(.caption)
                     .foregroundStyle(AppColors.primaryFallback)
+                }
+                .padding(.bottom, 40)
             }
+            .frame(maxWidth: 500)
+            .frame(maxWidth: .infinity)
         }
-    }
-
-    // MARK: - Footer Section
-
-    private var footerSection: some View {
-        VStack(spacing: AppSpacing.sm) {
-            Text("By continuing, you agree to our")
-                .font(AppTypography.caption)
-                .foregroundStyle(.tertiary)
-
-            HStack(spacing: AppSpacing.sm) {
-                Link("Terms of Service", destination: URL(string: "https://gitbook.com/terms")!)
-                Text("and")
-                    .foregroundStyle(.tertiary)
-                Link("Privacy Policy", destination: URL(string: "https://gitbook.com/privacy")!)
-            }
-            .font(AppTypography.caption)
+        .scrollDismissesKeyboard(.interactively)
+        .background(
+            LinearGradient(
+                colors: [
+                    AppColors.primaryFallback.opacity(0.15),
+                    AppColors.secondaryFallback.opacity(0.1),
+                    Color(.systemBackground)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+        )
+        .alert("Authentication Failed", isPresented: .constant(authViewModel.hasError)) {
+            Button("OK") { authViewModel.clearError() }
+        } message: {
+            Text(authViewModel.errorMessage ?? "Please check your token and try again.")
         }
-        .padding(.bottom, AppSpacing.xl)
     }
 }
 
@@ -200,20 +172,15 @@ struct LoginView: View {
         .environment(AuthViewModel(authRepository: MockAuthRepository()))
 }
 
-// MARK: - Mock Repository for Preview
-
 private actor MockAuthRepository: AuthRepository {
     var authState: AuthState { .unauthenticated }
     var isAuthenticated: Bool { false }
-
     func loginWithOAuth(code: String, redirectUri: String) async throws -> User {
-        User(id: "1", displayName: "Test User", email: "test@example.com", photoURL: nil, createdAt: nil, updatedAt: nil)
+        User(id: "1", displayName: "Test", email: "test@example.com", photoURL: nil, createdAt: nil, updatedAt: nil)
     }
-
     func loginWithToken(_ token: String) async throws -> User {
-        User(id: "1", displayName: "Test User", email: "test@example.com", photoURL: nil, createdAt: nil, updatedAt: nil)
+        User(id: "1", displayName: "Test", email: "test@example.com", photoURL: nil, createdAt: nil, updatedAt: nil)
     }
-
     func refreshToken() async throws {}
     func logout() async {}
     func getAccessToken() async -> String? { nil }

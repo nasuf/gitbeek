@@ -17,6 +17,7 @@
 		173113EB5A557F99BF7D2FED /* MarkdownImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96ED7A67DBECB2EA3B07D72 /* MarkdownImageView.swift */; };
 		1D041E5043F776326A901968 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC799BDDF2EFE0658A87FFF /* APIError.swift */; };
 		1D2DAB866C7F8B07A36113EE /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = DD9588E57CF4B19E72854A4C /* Markdown */; };
+		201AEF8EDB9DA4E6BB5FB47B /* NativeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D9951103C2F6773A81837B /* NativeTextField.swift */; };
 		25821B62FC814A6A49556327 /* SessionExpiredInterceptorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F1E9C94E653EBA2498E0681 /* SessionExpiredInterceptorTests.swift */; };
 		27B1AA82D458A21901F1BACD /* GitBookEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E17B18AC79F494BAC7E9A6 /* GitBookEndpoints.swift */; };
 		2C4E0AAFB17831C0D40272A8 /* SpaceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F2AEC56DAC3032579E35CB /* SpaceListView.swift */; };
@@ -138,6 +139,7 @@
 		2C2AE04272D99A3C2057912A /* ExpandableBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableBlockView.swift; sourceTree = "<group>"; };
 		2CCDBDF8BD7FC5D078D73012 /* CreateSpaceSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSpaceSheet.swift; sourceTree = "<group>"; };
 		30D41DA640C69E065234A916 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		30D9951103C2F6773A81837B /* NativeTextField.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeTextField.swift; sourceTree = "<group>"; };
 		399C388EE5609661B2FABACF /* OrganizationRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationRepositoryImpl.swift; sourceTree = "<group>"; };
 		3F31EB588A53EA0DC967E689 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		48F1D6960BFB761D8FD985C6 /* SpaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceRepository.swift; sourceTree = "<group>"; };
@@ -389,6 +391,7 @@
 			isa = PBXGroup;
 			children = (
 				F93F4AC9104FA9F151DBB0A7 /* LoginView.swift */,
+				30D9951103C2F6773A81837B /* NativeTextField.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -687,8 +690,6 @@
 				6AA5250C0FCA8782A5C2CEE9 /* PBXTargetDependency */,
 			);
 			name = GitBeekTests;
-			packageProductDependencies = (
-			);
 			productName = GitBeekTests;
 			productReference = 29D6B54EF56EEAEB81A9214D /* GitBeekTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -752,6 +753,7 @@
 				172100AFCC51349E77BBDE81 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */,
 			);
+			productRefGroup = 1DA2B25719F4ED3F14A5EFE9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -873,6 +875,7 @@
 				45260D94F0CFE18AFF625430 /* UserDTO.swift in Sources */,
 				BD9868AB1E578471349AEC22 /* UserRepository.swift in Sources */,
 				5C1F06DBC9462DE1E1DAA712 /* UserRepositoryImpl.swift in Sources */,
+				201AEF8EDB9DA4E6BB5FB47B /* NativeTextField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
