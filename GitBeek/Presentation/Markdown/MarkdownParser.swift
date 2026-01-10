@@ -75,6 +75,10 @@ struct MarkdownBlock: Identifiable, Equatable, Sendable {
     static func expandable(title: String, content: [MarkdownBlock]) -> MarkdownBlock {
         MarkdownBlock(.expandable(title: title, content: content))
     }
+
+    static func embed(type: EmbedType, url: String, title: String?) -> MarkdownBlock {
+        MarkdownBlock(.embed(type: type, url: url, title: title))
+    }
 }
 
 /// The actual content of a markdown block
@@ -94,6 +98,7 @@ enum MarkdownBlockContent: Equatable, Sendable {
     case hint(type: HintType, content: [MarkdownBlock])
     case tabs(items: [TabItem])
     case expandable(title: String, content: [MarkdownBlock])
+    case embed(type: EmbedType, url: String, title: String?)
 }
 
 /// List item
@@ -119,6 +124,18 @@ enum HintType: String, Sendable {
     case success
     case warning
     case danger
+}
+
+/// Embed type for different platforms
+enum EmbedType: String, Codable, Sendable {
+    case youtube
+    case vimeo
+    case twitter
+    case github
+    case codepen
+    case figma
+    case loom
+    case generic
 }
 
 /// Tab item for tabbed content
@@ -219,7 +236,9 @@ actor MarkdownParser {
                         listBlocks.append(parsed)
                     }
                 }
-                items.append(ListItemBlock(id: itemId, content: listBlocks, isChecked: listItem.checkbox == .checked))
+                // Only set isChecked if checkbox exists (task list)
+                let isChecked: Bool? = listItem.checkbox.map { $0 == .checked }
+                items.append(ListItemBlock(id: itemId, content: listBlocks, isChecked: isChecked))
             }
             return MarkdownBlock(id: id, content: .unorderedList(items: items))
 

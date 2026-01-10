@@ -19,7 +19,7 @@ A native Swift/SwiftUI iOS application for browsing and editing GitBook content,
 | Local Storage | SwiftData |
 | Secure Storage | Keychain Services |
 | Markdown | swift-markdown + AttributedString |
-| Code Highlighting | Splash / HighlightSwift |
+| Code Highlighting | Highlightr (185+ languages) |
 | Navigation | NavigationStack + NavigationSplitView |
 | Dependency Injection | Swift Dependencies / Factory |
 | Image Loading | SDWebImageSwiftUI / Kingfisher |
@@ -280,7 +280,9 @@ GitBookiOS/
 
 #### 3.4 Markdown Rendering
 - [x] 基础 Markdown 渲染 (swift-markdown + AttributedString)
-- [x] 代码块语法高亮 (Splash/HighlightSwift)
+- [x] 代码块语法高亮 (Highlightr - 185+ 语言支持)
+- [x] HTML 代码块渲染 (`<pre><code>` 支持)
+- [x] 列表渲染 (普通列表、Task list checkbox)
 - [x] 表格渲染
 - [x] 图片加载和缓存 (SDWebImageSwiftUI)
 - [x] 链接处理 (内部/外部)
@@ -290,7 +292,7 @@ GitBookiOS/
   - [x] Hints (info, warning, danger, success)
   - [x] Tabs
   - [x] 可展开区块
-  - [ ] Embeds
+  - [x] Embeds (YouTube, Vimeo, Twitter, GitHub, Loom, etc.)
 
 ---
 
@@ -613,7 +615,7 @@ dependencies: [
     .package(url: "https://github.com/apple/swift-markdown", from: "0.4.0"),
 
     // Code Highlighting
-    .package(url: "https://github.com/JohnSundell/Splash", from: "0.16.0"),
+    .package(url: "https://github.com/raspu/Highlightr", from: "2.2.1"),
 
     // Dependency Injection
     .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),

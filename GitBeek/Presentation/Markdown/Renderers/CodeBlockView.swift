@@ -2,11 +2,11 @@
 //  CodeBlockView.swift
 //  GitBeek
 //
-//  Code block with Splash syntax highlighting
+//  Code block with Highlightr multi-language syntax highlighting
 //
 
 import SwiftUI
-import Splash
+import Highlightr
 
 /// View for rendering code blocks with syntax highlighting
 struct CodeBlockView: View {
@@ -15,7 +15,7 @@ struct CodeBlockView: View {
     let code: String
     let language: String?
 
-    @State private var highlightedCode: NSAttributedString?
+    @State private var highlightedCode: AttributedString?
     @State private var isCopied = false
 
     // MARK: - Body
@@ -76,7 +76,7 @@ struct CodeBlockView: View {
     @ViewBuilder
     private var codeContent: some View {
         if let highlighted = highlightedCode {
-            Text(AttributedString(highlighted))
+            Text(highlighted)
                 .font(.system(size: 13, weight: .regular, design: .monospaced))
                 .textSelection(.enabled)
         } else {
@@ -89,14 +89,24 @@ struct CodeBlockView: View {
     // MARK: - Syntax Highlighting
 
     private func highlightCode() async {
-        // Only highlight Swift code for now (Splash primarily supports Swift)
-        guard language?.lowercased() == "swift" else {
+        // Use Highlightr for syntax highlighting (supports 185+ languages)
+        guard let lang = language, !lang.isEmpty else {
             return
         }
 
-        // Highlight on main thread to avoid Sendable issues
-        let highlighter = SyntaxHighlighter(format: AttributedStringOutputFormat(theme: .sundellsColors(withFont: Font(size: 13))))
-        highlightedCode = highlighter.highlight(code)
+        // Create highlighter instance
+        let highlightr = Highlightr()
+        highlightr?.setTheme(to: "xcode")  // Use Xcode theme
+
+        // Highlight code on background thread
+        guard let highlighted = highlightr?.highlight(code, as: lang) else {
+            return
+        }
+
+        // Convert NSAttributedString to AttributedString
+        await MainActor.run {
+            highlightedCode = AttributedString(highlighted)
+        }
     }
 
     // MARK: - Copy

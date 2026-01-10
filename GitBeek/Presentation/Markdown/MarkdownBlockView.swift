@@ -55,10 +55,7 @@ struct MarkdownBlockView: View {
             MarkdownTableView(headers: headers, rows: rows)
 
         case .htmlBlock(let content):
-            // Simple HTML display (could be enhanced with WKWebView)
-            Text(content)
-                .font(.system(.body, design: .monospaced))
-                .foregroundStyle(.secondary)
+            HTMLBlockView(htmlContent: content)
 
         case .hint(let type, let content):
             HintBlockView(type: type, content: content)
@@ -68,6 +65,9 @@ struct MarkdownBlockView: View {
 
         case .expandable(let title, let content):
             ExpandableBlockView(title: title, content: content)
+
+        case .embed(let type, let url, let title):
+            EmbedBlockView(type: type, url: url, title: title)
         }
     }
 

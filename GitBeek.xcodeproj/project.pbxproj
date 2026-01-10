@@ -103,6 +103,8 @@
 		FC1888536B6C50D3A71FA429 /* TabBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FE61D1DBD89BBFF9595850 /* TabBlockView.swift */; };
 		FE38C6C47C3B4DC820D91DD3 /* LoggingInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0239B22A88AB71CDCCD28198 /* LoggingInterceptor.swift */; };
 		FECC91BAF13B4846B94FAB78 /* PageTreeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503A4BC7A69807934310EB81 /* PageTreeRow.swift */; };
+		C8E4D9A71B2F5E3A9D4C8F20 /* EmbedBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7B5C21F9D843A2B7E19F60 /* EmbedBlockView.swift */; };
+		7A5E9B3C4D8F6E1A2C0B9F50 /* HTMLBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F8A7E4D3B2C5F1A8E6D9C40 /* HTMLBlockView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -210,6 +212,8 @@
 		FB9E7A9B76AFD2F3791B625D /* SpaceDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceDetailViewModel.swift; sourceTree = "<group>"; };
 		FCC799BDDF2EFE0658A87FFF /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		FDDB60F1CC7AD74EC5A957AF /* GitBeekTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitBeekTests.swift; sourceTree = "<group>"; };
+		AE7B5C21F9D843A2B7E19F60 /* EmbedBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedBlockView.swift; sourceTree = "<group>"; };
+		9F8A7E4D3B2C5F1A8E6D9C40 /* HTMLBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLBlockView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -527,6 +531,7 @@
 		938B98B40975D3B8C2324CD7 /* GitBookBlocks */ = {
 			isa = PBXGroup;
 			children = (
+				AE7B5C21F9D843A2B7E19F60 /* EmbedBlockView.swift */,
 				2C2AE04272D99A3C2057912A /* ExpandableBlockView.swift */,
 				01C0279F52CC66B09C785765 /* HintBlockView.swift */,
 				77FE61D1DBD89BBFF9595850 /* TabBlockView.swift */,
@@ -569,6 +574,7 @@
 			isa = PBXGroup;
 			children = (
 				7396D5E98855851189B298FF /* CodeBlockView.swift */,
+				9F8A7E4D3B2C5F1A8E6D9C40 /* HTMLBlockView.swift */,
 				B96ED7A67DBECB2EA3B07D72 /* MarkdownImageView.swift */,
 				213C6550869C46C14592A11D /* MarkdownTableView.swift */,
 			);
@@ -713,6 +719,7 @@
 				DD9588E57CF4B19E72854A4C /* Markdown */,
 				7C9F5FB5BDBDD45BDC268257 /* Splash */,
 				56E0B802E57B70384A92A347 /* Dependencies */,
+				3C4A8E6F9D2B5F1A7E0C9D50 /* Highlightr */,
 			);
 			productName = GitBeek;
 			productReference = 0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */;
@@ -752,6 +759,7 @@
 				7BFA74E470865A1F53AFAE75 /* XCRemoteSwiftPackageReference "Splash" */,
 				172100AFCC51349E77BBDE81 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */,
+				8E5F9A7B4C6D3E2A1F0B8D70 /* XCRemoteSwiftPackageReference "Highlightr" */,
 			);
 			productRefGroup = 1DA2B25719F4ED3F14A5EFE9 /* Products */;
 			projectDirPath = "";
@@ -819,6 +827,7 @@
 				81E65F8442B85E570296FE23 /* DesignSystemPreviewView.swift in Sources */,
 				12ABB7904F8FCF62D16D4C03 /* Environment.swift in Sources */,
 				DA07AB51157FCA5AF8AF3988 /* ExpandableBlockView.swift in Sources */,
+				C8E4D9A71B2F5E3A9D4C8F20 /* EmbedBlockView.swift in Sources */,
 				2D940B4F094DF6A0C13544D4 /* GitBeekApp.swift in Sources */,
 				AB82525AF4CCECDD8CCB3CC7 /* GitBookAPIService.swift in Sources */,
 				27B1AA82D458A21901F1BACD /* GitBookEndpoints.swift in Sources */,
@@ -840,6 +849,7 @@
 				173113EB5A557F99BF7D2FED /* MarkdownImageView.swift in Sources */,
 				894CDBF68912787718F10EA4 /* MarkdownParser.swift in Sources */,
 				3A36F545CD605B9D60EB686C /* MarkdownTableView.swift in Sources */,
+				7A5E9B3C4D8F6E1A2C0B9F50 /* HTMLBlockView.swift in Sources */,
 				DA07DA53487FED7D34717A26 /* Organization.swift in Sources */,
 				DC36C317C7E0B9710CE84B81 /* OrganizationDTO.swift in Sources */,
 				E9DC78963D675622F911625B /* OrganizationRepository.swift in Sources */,
@@ -1178,6 +1188,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		8E5F9A7B4C6D3E2A1F0B8D70 /* XCRemoteSwiftPackageReference "Highlightr" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/raspu/Highlightr";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1205,6 +1223,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
+		};
+		3C4A8E6F9D2B5F1A7E0C9D50 /* Highlightr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8E5F9A7B4C6D3E2A1F0B8D70 /* XCRemoteSwiftPackageReference "Highlightr" */;
+			productName = Highlightr;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
