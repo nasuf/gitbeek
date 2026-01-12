@@ -336,7 +336,16 @@ GitBookiOS/
 ### Phase 5: Change Requests (Git-like Workflow)
 
 #### 5.1 Change Request Management
-- [ ] Change Request 列表
+- [x] Change Request 列表 (All Change Requests view with hierarchy)
+- [x] 创建 Change Request 数据结构和 Repository
+- [x] 实现分层展示 (Collections > Spaces 结构)
+- [x] 实现 Liquid Glass 过滤栏 (iOS 26/18 兼容)
+- [x] 实现缓存机制 (Singleton ViewModel)
+- [x] 实现下拉刷新 (Pull-to-refresh with immediate feedback)
+- [x] 实现过滤器自动滚动 (Auto-scroll to center)
+- [x] 修复测试目标编译问题
+- [x] 代码简化 (减少 ~94 行, 16%)
+- [x] 创建测试文档 (19 个测试场景)
 - [ ] Change Request 详情视图
 - [ ] 创建新 Change Request
 - [ ] 在 Change Request 上下文中编辑

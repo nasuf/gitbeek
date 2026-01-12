@@ -28,12 +28,14 @@ final class DependencyContainer {
     let authRepository: AuthRepository
     let spaceRepository: SpaceRepository
     let pageRepository: PageRepository
+    let changeRequestRepository: ChangeRequestRepository
 
     // MARK: - ViewModels
 
     let authViewModel: AuthViewModel
     let profileViewModel: ProfileViewModel
     let appRouter: AppRouter
+    let allChangeRequestsViewModel: AllChangeRequestsViewModel
 
     // MARK: - Initialization
 
@@ -60,11 +62,19 @@ final class DependencyContainer {
 
         pageRepository = PageRepositoryImpl(apiService: apiService, store: swiftDataStore)
 
+        changeRequestRepository = ChangeRequestRepositoryImpl(apiService: apiService)
+
         // Initialize ViewModels
         authViewModel = AuthViewModel(authRepository: authRepository)
 
         profileViewModel = ProfileViewModel(
             userRepository: userRepository,
+            organizationRepository: organizationRepository
+        )
+
+        allChangeRequestsViewModel = AllChangeRequestsViewModel(
+            changeRequestRepository: changeRequestRepository,
+            spaceRepository: spaceRepository,
             organizationRepository: organizationRepository
         )
 

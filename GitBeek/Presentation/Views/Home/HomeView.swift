@@ -167,11 +167,13 @@ struct HomeView: View {
                 }
 
                 QuickActionButton(
-                    title: "Recent",
-                    icon: "clock",
-                    color: AppColors.secondaryFallback
+                    title: "Change Requests",
+                    icon: "arrow.triangle.branch",
+                    color: .purple
                 ) {
-                    // TODO: Show recent items
+                    print("🟡 点击了 Change Requests 按钮")
+                    router.navigate(to: .allChangeRequests)
+                    print("🟡 已调用 router.navigate(to: .allChangeRequests)")
                 }
             }
         }
@@ -276,6 +278,24 @@ struct HomeView: View {
                 spaceId: spaceId,
                 pageId: pageId,
                 pageRepository: DependencyContainer.shared.pageRepository
+            )
+
+        case .allChangeRequests:
+            AllChangeRequestsView(
+                viewModel: DependencyContainer.shared.allChangeRequestsViewModel
+            )
+
+        case .changeRequestList(let spaceId):
+            ChangeRequestListView(
+                spaceId: spaceId,
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+            )
+
+        case .changeRequestDetail(let spaceId, let changeRequestId):
+            ChangeRequestDetailView(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
             )
 
         default:

@@ -57,3 +57,20 @@ extension User {
         self.updatedAt = nil
     }
 }
+
+// MARK: - User Reference
+
+/// Simplified user reference
+struct UserReference: Equatable, Hashable, Sendable {
+    let id: String
+    let displayName: String
+    let photoURL: String?
+
+    static func from(dto: UserReferenceDTO) -> UserReference {
+        UserReference(
+            id: dto.id,
+            displayName: dto.displayName,
+            photoURL: dto.photoURL
+        )
+    }
+}

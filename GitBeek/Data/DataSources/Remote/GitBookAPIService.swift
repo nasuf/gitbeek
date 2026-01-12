@@ -209,8 +209,8 @@ actor GitBookAPIService {
     // MARK: - Change Requests
 
     /// List change requests for space
-    func listChangeRequests(spaceId: String, page: String? = nil) async throws -> ChangeRequestsListDTO {
-        try await client.request(GitBookEndpoint.listChangeRequests(spaceId: spaceId, page: page))
+    func listChangeRequests(spaceId: String, status: String? = nil, page: String? = nil) async throws -> ChangeRequestsListDTO {
+        try await client.request(GitBookEndpoint.listChangeRequests(spaceId: spaceId, status: status, page: page))
     }
 
     /// Get change request by ID

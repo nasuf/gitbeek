@@ -95,6 +95,14 @@ struct SpaceDetailView: View {
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button {
+                    router.navigate(to: .changeRequestList(spaceId: spaceId))
+                } label: {
+                    Label("Change Requests", systemImage: "arrow.triangle.branch")
+                }
+
+                Divider()
+
+                Button {
                     viewModel.expandAll()
                 } label: {
                     Label("Expand All", systemImage: "arrow.down.right.and.arrow.up.left")

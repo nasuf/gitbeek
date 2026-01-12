@@ -84,7 +84,7 @@ enum GitBookEndpoint: APIEndpoint {
     // MARK: - Change Requests
 
     /// List change requests for space
-    case listChangeRequests(spaceId: String, page: String?)
+    case listChangeRequests(spaceId: String, status: String?, page: String?)
 
     /// Get change request by ID
     case getChangeRequest(spaceId: String, changeRequestId: String)
@@ -164,7 +164,7 @@ enum GitBookEndpoint: APIEndpoint {
             return "/spaces/\(spaceId)/content/page/\(pageId)"
 
         // Change Requests
-        case .listChangeRequests(let spaceId, _):
+        case .listChangeRequests(let spaceId, _, _):
             return "/spaces/\(spaceId)/change-requests"
         case .getChangeRequest(let spaceId, let changeRequestId):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)"
@@ -175,7 +175,7 @@ enum GitBookEndpoint: APIEndpoint {
         case .mergeChangeRequest(let spaceId, let changeRequestId):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/merge"
         case .getChangeRequestDiff(let spaceId, let changeRequestId):
-            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/diff"
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/changes"
 
         // Search
         case .searchOrganization(let orgId, _, _):
@@ -205,9 +205,14 @@ enum GitBookEndpoint: APIEndpoint {
         case .listOrganizations(let page),
              .listMembers(_, let page),
              .listCollections(_, let page),
-             .listSpaces(_, let page),
-             .listChangeRequests(_, let page):
+             .listSpaces(_, let page):
             var params: [String: String] = [:]
+            if let page = page { params["page"] = page }
+            return params.isEmpty ? nil : params
+
+        case .listChangeRequests(_, let status, let page):
+            var params: [String: String] = [:]
+            if let status = status { params["status"] = status }
             if let page = page { params["page"] = page }
             return params.isEmpty ? nil : params
 

@@ -19,6 +19,7 @@ enum AppDestination: Hashable {
     case pageEditor(spaceId: String, pageId: String?)
 
     // Change Requests
+    case allChangeRequests
     case changeRequestList(spaceId: String)
     case changeRequestDetail(spaceId: String, changeRequestId: String)
 
@@ -162,13 +163,23 @@ extension View {
             // TODO: Implement PageEditorView
             Text("Editor for Page \(pageId ?? "new") in Space \(spaceId)")
 
+        case .allChangeRequests:
+            AllChangeRequestsView(
+                viewModel: DependencyContainer.shared.allChangeRequestsViewModel
+            )
+
         case .changeRequestList(let spaceId):
-            // TODO: Implement ChangeRequestListView
-            Text("Change Requests for Space \(spaceId)")
+            ChangeRequestListView(
+                spaceId: spaceId,
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+            )
 
         case .changeRequestDetail(let spaceId, let changeRequestId):
-            // TODO: Implement ChangeRequestDetailView
-            Text("Change Request \(changeRequestId) in Space \(spaceId)")
+            ChangeRequestDetailView(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+            )
 
         case .search(let organizationId):
             // TODO: Implement SearchView

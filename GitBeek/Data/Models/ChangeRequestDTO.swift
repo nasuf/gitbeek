@@ -8,11 +8,12 @@
 import Foundation
 
 /// Change request status
+/// GitBook API 支持的状态值: draft, open, merged, archived
 enum ChangeRequestStatus: String, Codable, Sendable {
     case draft
     case open
     case merged
-    case closed
+    case archived
 }
 
 /// Change request details
@@ -61,20 +62,57 @@ struct UpdateChangeRequestDTO: Codable, Sendable {
     }
 }
 
-/// Change request diff
+/// Change request diff/changes response
+/// GitBook API returns an array of changes directly
 struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
-    let object: String  // "revision-diff"
-    let changes: [ChangeDTO]?
+    let changes: [ChangeDTO]
 
-    struct ChangeDTO: Codable, Equatable, Sendable {
-        let type: String  // "added", "modified", "removed"
-        let path: String
-        let document: DocumentChangeDTO?
+    // Custom init to handle array response
+    init(from decoder: Decoder) throws {
+        // Try to decode as an array directly
+        if let changesArray = try? [ChangeDTO](from: decoder) {
+            self.changes = changesArray
+        } else {
+            // Fallback: try to decode as an object with changes field
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.changes = try container.decode([ChangeDTO].self, forKey: .changes)
+        }
     }
 
-    struct DocumentChangeDTO: Codable, Equatable, Sendable {
-        let before: String?
-        let after: String?
+    init(changes: [ChangeDTO]) {
+        self.changes = changes
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case changes
+    }
+
+    struct ChangeDTO: Codable, Equatable, Sendable {
+        let type: String  // "page_edited", "page_added", "page_removed"
+        let page: PageDTO?
+        let attributes: AttributesDTO?
+
+        struct PageDTO: Codable, Equatable, Sendable {
+            let id: String
+            let type: String
+            let title: String
+            let path: String
+        }
+
+        struct AttributesDTO: Codable, Equatable, Sendable {
+            let title: TitleChangeDTO?
+            let document: DocumentReferenceDTO?
+
+            struct TitleChangeDTO: Codable, Equatable, Sendable {
+                let before: String?
+                let after: String?
+            }
+
+            struct DocumentReferenceDTO: Codable, Equatable, Sendable {
+                let before: String?  // Document ID
+                let after: String?   // Document ID
+            }
+        }
     }
 }
 
