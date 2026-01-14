@@ -29,6 +29,7 @@ final class DependencyContainer {
     let spaceRepository: SpaceRepository
     let pageRepository: PageRepository
     let changeRequestRepository: ChangeRequestRepository
+    let searchRepository: SearchRepository
 
     // MARK: - ViewModels
 
@@ -36,6 +37,7 @@ final class DependencyContainer {
     let profileViewModel: ProfileViewModel
     let appRouter: AppRouter
     let allChangeRequestsViewModel: AllChangeRequestsViewModel
+    let searchViewModel: SearchViewModel
 
     // MARK: - Initialization
 
@@ -64,6 +66,8 @@ final class DependencyContainer {
 
         changeRequestRepository = ChangeRequestRepositoryImpl(apiService: apiService)
 
+        searchRepository = SearchRepositoryImpl(apiService: apiService, store: swiftDataStore)
+
         // Initialize ViewModels
         authViewModel = AuthViewModel(authRepository: authRepository)
 
@@ -76,6 +80,12 @@ final class DependencyContainer {
             changeRequestRepository: changeRequestRepository,
             spaceRepository: spaceRepository,
             organizationRepository: organizationRepository
+        )
+
+        searchViewModel = SearchViewModel(
+            searchRepository: searchRepository,
+            organizationRepository: organizationRepository,
+            spaceRepository: spaceRepository
         )
 
         appRouter = AppRouter()

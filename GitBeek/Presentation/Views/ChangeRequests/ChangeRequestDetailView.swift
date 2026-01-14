@@ -66,6 +66,7 @@ struct ChangeRequestDetailView: View {
         }
         .navigationTitle("Change Request")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.load()
             await viewModel.loadDiff()

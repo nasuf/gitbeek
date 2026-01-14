@@ -385,21 +385,39 @@ GitBookiOS/
 
 ---
 
-### Phase 7: Search & Discovery
+### Phase 7: Search & Discovery ✅
 
 #### 7.1 Search Features
-- [ ] SearchView (Liquid Glass with `.searchRole(.tab)`)
-- [ ] 全局搜索 (跨组织)
-- [ ] 空间特定搜索
-- [ ] 全文内容搜索
-- [ ] 搜索历史
-- [ ] 搜索建议
-- [ ] 按内容类型过滤
+- [x] SearchView (Liquid Glass design)
+- [x] 全局搜索 (跨组织)
+- [x] 空间特定搜索
+- [x] 全文内容搜索
+- [x] 搜索历史管理 (添加、删除、清空)
+- [x] Search scope selection (All/This Space with space picker)
+- [x] Debounced search with loading states (300ms)
+- [x] Rich result display with excerpts
+- [x] 搜索建议 (Search suggestions from history)
+- [x] 完整的导航集成 (NavigationDestinationBuilder)
+- [x] 错误处理和空状态展示
+- [x] TabBar 可见性控制 (仅顶层显示)
+- [x] 点击区域优化 (contentShape for full row)
+- [ ] 按内容类型过滤 (Client-side filtering available)
 
 #### 7.2 Recent & Favorites
-- [ ] 最近查看的页面
-- [ ] 书签页面
-- [ ] 快速访问快捷方式
+- [x] 最近查看的页面 (Automatic tracking with RecentPagesManager)
+- [x] RecentPagesManager 单例存储 (UserDefaults持久化)
+- [x] 去重和时间戳更新逻辑
+- [x] 书签/收藏功能 (Toggle favorite with persistence)
+- [x] 快速访问快捷方式 (Preview in SearchView + dedicated views)
+- [x] RecentPagesView 完整列表展示
+- [x] FavoritesView 完整列表展示
+- [x] 相对时间格式化显示
+
+#### 7.3 Code Quality
+- [x] 代码简化 (NavigationDestinationBuilder 减少重复)
+- [x] API DTO 修复 (OrganizationSearchDTO 匹配实际响应)
+- [x] 测试覆盖 (Phase7Tests with 14 test cases, 160 total tests passing)
+- [x] flatMap 优化搜索结果处理
 
 ---
 
@@ -577,9 +595,10 @@ Button("Action") { }
 
 ### V1.0
 - [ ] Phase 4: Full content editing
-- [ ] Phase 5: Change Request workflow
+- [x] Phase 5.1: Change Request management (completed)
+- [ ] Phase 5.2: Review Flow
 - [ ] Phase 6: Offline content viewing
-- [ ] Phase 7: Search functionality
+- [x] Phase 7: Search & Discovery (completed)
 
 ### V1.1+
 - [ ] Offline editing with sync

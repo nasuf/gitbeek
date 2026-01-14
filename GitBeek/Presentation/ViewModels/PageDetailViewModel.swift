@@ -49,6 +49,7 @@ final class PageDetailViewModel {
     // MARK: - Dependencies
 
     private let pageRepository: PageRepository
+    private let recentPagesManager = RecentPagesManager.shared
 
     // MARK: - Initialization
 
@@ -76,6 +77,10 @@ final class PageDetailViewModel {
             }
             
             page = fetchedPage
+
+            // Add to recent pages
+            let recentPage = RecentPage(from: fetchedPage, spaceId: spaceId)
+            recentPagesManager.addRecentPage(recentPage)
         } catch {
             self.error = error
         }

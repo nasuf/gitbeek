@@ -12,6 +12,7 @@ struct ContentView: View {
     // MARK: - Environment
 
     @Environment(AppRouter.self) private var router
+    @Environment(SearchViewModel.self) private var searchViewModel
 
     // MARK: - Body
 
@@ -32,7 +33,7 @@ struct ContentView: View {
                 .tag(AppRouter.Tab.home)
 
             // Search Tab
-            SearchView()
+            SearchView(viewModel: searchViewModel)
                 .tabItem {
                     Label(
                         AppRouter.Tab.search.title,

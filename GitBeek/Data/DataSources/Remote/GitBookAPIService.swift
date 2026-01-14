@@ -242,8 +242,8 @@ actor GitBookAPIService {
 
     // MARK: - Search
 
-    /// Search in organization
-    func searchOrganization(orgId: String, query: String, page: String? = nil) async throws -> SearchResultsDTO {
+    /// Search in organization (returns grouped by space)
+    func searchOrganization(orgId: String, query: String, page: String? = nil) async throws -> OrganizationSearchResponseDTO {
         try await client.request(GitBookEndpoint.searchOrganization(orgId: orgId, query: query, page: page))
     }
 

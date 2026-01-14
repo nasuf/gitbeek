@@ -49,6 +49,7 @@ struct SpaceDetailView: View {
         .toolbar {
             toolbarContent
         }
+        .toolbar(.hidden, for: .tabBar)
         .refreshable {
             await viewModel.refresh()
         }

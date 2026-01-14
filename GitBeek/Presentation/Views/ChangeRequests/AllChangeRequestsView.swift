@@ -65,6 +65,7 @@ struct AllChangeRequestsView: View {
         }
         .navigationTitle("All Change Requests")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.load()
         }

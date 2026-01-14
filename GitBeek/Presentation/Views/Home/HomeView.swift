@@ -50,9 +50,7 @@ struct HomeView: View {
             .task {
                 await profileViewModel.loadAll()
             }
-            .navigationDestination(for: AppDestination.self) { destination in
-                destinationView(for: destination)
-            }
+            .navigationDestinations()
             .sheet(isPresented: $showOrganizationPicker) {
                 OrganizationPickerView()
             }
@@ -253,55 +251,6 @@ struct HomeView: View {
 
     // MARK: - Destination View
 
-    @ViewBuilder
-    private func destinationView(for destination: AppDestination) -> some View {
-        switch destination {
-        case .spaceList(let organizationId):
-            SpaceListView(
-                organizationId: organizationId,
-                spaceRepository: DependencyContainer.shared.spaceRepository
-            )
-
-        case .spaceDetail(let spaceId):
-            SpaceDetailView(
-                spaceId: spaceId,
-                spaceRepository: DependencyContainer.shared.spaceRepository,
-                pageRepository: DependencyContainer.shared.pageRepository
-            )
-
-        case .trash(let organizationId):
-            // Trash is handled as a sheet in SpaceListView
-            Text("Trash for \(organizationId)")
-
-        case .pageDetail(let spaceId, let pageId):
-            PageDetailView(
-                spaceId: spaceId,
-                pageId: pageId,
-                pageRepository: DependencyContainer.shared.pageRepository
-            )
-
-        case .allChangeRequests:
-            AllChangeRequestsView(
-                viewModel: DependencyContainer.shared.allChangeRequestsViewModel
-            )
-
-        case .changeRequestList(let spaceId):
-            ChangeRequestListView(
-                spaceId: spaceId,
-                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
-            )
-
-        case .changeRequestDetail(let spaceId, let changeRequestId):
-            ChangeRequestDetailView(
-                spaceId: spaceId,
-                changeRequestId: changeRequestId,
-                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
-            )
-
-        default:
-            EmptyView()
-        }
-    }
 }
 
 // MARK: - Quick Action Button

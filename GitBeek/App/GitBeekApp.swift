@@ -290,6 +290,7 @@ struct GitBeekApp: App {
             RootView()
                 .environment(container.authViewModel)
                 .environment(container.profileViewModel)
+                .environment(container.searchViewModel)
                 .environment(container.appRouter)
         }
     }

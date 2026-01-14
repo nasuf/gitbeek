@@ -46,6 +46,7 @@ struct SpaceListView: View {
         .toolbar {
             toolbarContent
         }
+        .toolbar(.hidden, for: .tabBar)
         .searchable(text: $viewModel.searchQuery, prompt: "Search spaces")
         .refreshable {
             await viewModel.refresh()

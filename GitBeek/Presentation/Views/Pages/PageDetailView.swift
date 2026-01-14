@@ -18,6 +18,9 @@ struct PageDetailView: View {
     let spaceId: String
     let pageId: String
     @State private var viewModel: PageDetailViewModel
+    @State private var isFavorite = false
+
+    private let recentPagesManager = RecentPagesManager.shared
 
     // MARK: - Initialization
 
@@ -47,11 +50,16 @@ struct PageDetailView: View {
         .toolbar {
             toolbarContent
         }
+        .toolbar(.hidden, for: .tabBar)
         .refreshable {
             await viewModel.refresh(spaceId: spaceId, pageId: pageId)
         }
         .task {
             await viewModel.loadPage(spaceId: spaceId, pageId: pageId)
+            updateFavoriteState()
+        }
+        .onChange(of: viewModel.page) { _, _ in
+            updateFavoriteState()
         }
         .alert("Error", isPresented: .constant(viewModel.hasError)) {
             Button("OK") {
@@ -66,6 +74,17 @@ struct PageDetailView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        // Favorite button
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                toggleFavorite()
+            } label: {
+                Image(systemName: isFavorite ? "star.fill" : "star")
+                    .foregroundStyle(isFavorite ? .yellow : .primary)
+            }
+        }
+
+        // More menu
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 // Share
@@ -85,6 +104,23 @@ struct PageDetailView: View {
                 Image(systemName: "ellipsis.circle")
             }
         }
+    }
+
+    // MARK: - Actions
+
+    private func updateFavoriteState() {
+        guard let page = viewModel.page else { return }
+        isFavorite = recentPagesManager.isFavorite(id: page.id, spaceId: spaceId)
+    }
+
+    private func toggleFavorite() {
+        guard let page = viewModel.page else { return }
+
+        let favorite = FavoritePage(from: page, spaceId: spaceId)
+        recentPagesManager.toggleFavorite(favorite)
+        updateFavoriteState()
+
+        HapticFeedback.selection()
     }
 
     // MARK: - Content View
