@@ -418,6 +418,7 @@ GitBookiOS/
 - [x] API DTO 修复 (OrganizationSearchDTO 匹配实际响应)
 - [x] 测试覆盖 (Phase7Tests with 14 test cases, 160 total tests passing)
 - [x] flatMap 优化搜索结果处理
+- [x] iOS 18.6 导航兼容性修复 (NavigationStack 架构优化，消除嵌套问题)
 
 ---
 

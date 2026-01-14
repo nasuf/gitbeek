@@ -22,8 +22,6 @@ struct SearchView: View {
     // MARK: - Body
 
     var body: some View {
-        @Bindable var routerBinding = router
-
         NavigationStack(path: Binding(
             get: { router.path },
             set: { router.path = $0 }
@@ -311,9 +309,7 @@ struct SearchView: View {
     }
 
     private func recentPagePreviewRow(_ page: RecentPage) -> some View {
-        Button {
-            router.navigate(to: .pageDetail(spaceId: page.spaceId, pageId: page.id))
-        } label: {
+        NavigationLink(value: AppDestination.pageDetail(spaceId: page.spaceId, pageId: page.id)) {
             HStack(spacing: AppSpacing.sm) {
                 if let emoji = page.emoji {
                     Text(verbatim: emoji)
@@ -335,9 +331,7 @@ struct SearchView: View {
 
                 Spacer()
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Favorites Preview Section
@@ -372,9 +366,7 @@ struct SearchView: View {
     }
 
     private func favoritePagePreviewRow(_ page: FavoritePage) -> some View {
-        Button {
-            router.navigate(to: .pageDetail(spaceId: page.spaceId, pageId: page.id))
-        } label: {
+        NavigationLink(value: AppDestination.pageDetail(spaceId: page.spaceId, pageId: page.id)) {
             HStack(spacing: AppSpacing.sm) {
                 if let emoji = page.emoji {
                     Text(verbatim: emoji)
@@ -394,9 +386,7 @@ struct SearchView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.yellow)
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Helper Methods

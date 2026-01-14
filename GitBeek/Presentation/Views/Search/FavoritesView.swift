@@ -12,24 +12,21 @@ struct FavoritesView: View {
     // MARK: - Environment
 
     @Bindable var viewModel: SearchViewModel
-    @Environment(AppRouter.self) private var router
 
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            List {
-                if viewModel.favoritePages.isEmpty {
-                    emptyStateSection
-                } else {
-                    favoritesSection
-                }
+        List {
+            if viewModel.favoritePages.isEmpty {
+                emptyStateSection
+            } else {
+                favoritesSection
             }
-            .navigationTitle("Favorites")
-            .toolbar(.hidden, for: .tabBar)
-            .refreshable {
-                viewModel.loadFavoritePages()
-            }
+        }
+        .navigationTitle("Favorites")
+        .toolbar(.hidden, for: .tabBar)
+        .refreshable {
+            viewModel.loadFavoritePages()
         }
     }
 
@@ -67,9 +64,7 @@ struct FavoritesView: View {
     // MARK: - Favorite Page Row
 
     private func favoritePageRow(_ page: FavoritePage) -> some View {
-        Button {
-            router.navigate(to: .pageDetail(spaceId: page.spaceId, pageId: page.id))
-        } label: {
+        NavigationLink(value: AppDestination.pageDetail(spaceId: page.spaceId, pageId: page.id)) {
             HStack(spacing: AppSpacing.md) {
                 // Icon
                 ZStack {
@@ -113,9 +108,7 @@ struct FavoritesView: View {
                     .foregroundStyle(.yellow)
             }
             .padding(.vertical, AppSpacing.xs)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers

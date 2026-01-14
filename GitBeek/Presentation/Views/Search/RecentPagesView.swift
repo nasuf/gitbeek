@@ -12,34 +12,31 @@ struct RecentPagesView: View {
     // MARK: - Environment
 
     @Bindable var viewModel: SearchViewModel
-    @Environment(AppRouter.self) private var router
 
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            List {
-                if viewModel.recentPages.isEmpty {
-                    emptyStateSection
-                } else {
-                    recentPagesSection
-                }
+        List {
+            if viewModel.recentPages.isEmpty {
+                emptyStateSection
+            } else {
+                recentPagesSection
             }
-            .navigationTitle("Recent Pages")
-            .toolbar {
-                if !viewModel.recentPages.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Clear") {
-                            viewModel.clearRecentPages()
-                        }
-                        .foregroundStyle(.red)
+        }
+        .navigationTitle("Recent Pages")
+        .toolbar {
+            if !viewModel.recentPages.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Clear") {
+                        viewModel.clearRecentPages()
                     }
+                    .foregroundStyle(.red)
                 }
             }
-            .toolbar(.hidden, for: .tabBar)
-            .refreshable {
-                viewModel.loadRecentPages()
-            }
+        }
+        .toolbar(.hidden, for: .tabBar)
+        .refreshable {
+            viewModel.loadRecentPages()
         }
     }
 
@@ -70,9 +67,7 @@ struct RecentPagesView: View {
     // MARK: - Recent Page Row
 
     private func recentPageRow(_ page: RecentPage) -> some View {
-        Button {
-            router.navigate(to: .pageDetail(spaceId: page.spaceId, pageId: page.id))
-        } label: {
+        NavigationLink(value: AppDestination.pageDetail(spaceId: page.spaceId, pageId: page.id)) {
             HStack(spacing: AppSpacing.md) {
                 // Icon
                 ZStack {
@@ -116,9 +111,7 @@ struct RecentPagesView: View {
                     .foregroundStyle(.tertiary)
             }
             .padding(.vertical, AppSpacing.xs)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .contextMenu {
             Button(role: .destructive) {
                 viewModel.recentPagesManager.removeRecentPage(id: page.id, spaceId: page.spaceId)
