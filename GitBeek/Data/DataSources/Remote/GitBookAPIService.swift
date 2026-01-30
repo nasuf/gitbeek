@@ -240,6 +240,15 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.getChangeRequestDiff(spaceId: spaceId, changeRequestId: changeRequestId))
     }
 
+    /// Get page content in change request context (the "after" version)
+    func getChangeRequestPageContent(spaceId: String, changeRequestId: String, pageId: String) async throws -> PageContentDTO {
+        try await client.request(GitBookEndpoint.getChangeRequestPageContent(spaceId: spaceId, changeRequestId: changeRequestId, pageId: pageId))
+    }
+
+    func getPageAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> PageContentDTO {
+        try await client.request(GitBookEndpoint.getPageAtRevision(spaceId: spaceId, revisionId: revisionId, pageId: pageId))
+    }
+
     // MARK: - Search
 
     /// Search in organization (returns grouped by space)

@@ -62,7 +62,7 @@ struct ChangeRequestListView: View {
                                 ChangeRequestRow(changeRequest: changeRequest)
                                     .onTapGesture {
                                         router.navigate(to: .changeRequestDetail(
-                                            spaceId: changeRequest.id,  // FIXME: Should store spaceId
+                                            spaceId: viewModel.spaceId,
                                             changeRequestId: changeRequest.id
                                         ))
                                     }
@@ -82,6 +82,11 @@ struct ChangeRequestListView: View {
         .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.load()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .changeRequestStatusDidChange)) { notification in
+            if let change = notification.object as? ChangeRequestStatusChange {
+                viewModel.updateLocalStatus(changeRequestId: change.changeRequestId, newStatus: change.newStatus)
+            }
         }
         .alert("Error", isPresented: .constant(viewModel.hasError)) {
             Button("OK") {

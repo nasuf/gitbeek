@@ -314,6 +314,13 @@ final class AllChangeRequestsViewModel {
         try? await Task.sleep(for: .milliseconds(100))
     }
 
+    /// Update a change request's status locally (no API call)
+    func updateLocalStatus(changeRequestId: String, newStatus: ChangeRequestStatus) {
+        guard let index = changeRequests.firstIndex(where: { $0.changeRequest.id == changeRequestId }) else { return }
+        let old = changeRequests[index]
+        changeRequests[index] = (space: old.space, changeRequest: old.changeRequest.withStatus(newStatus))
+    }
+
     /// Clear error
     func clearError() {
         error = nil

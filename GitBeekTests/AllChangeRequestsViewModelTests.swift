@@ -441,11 +441,7 @@ class MockChangeRequestRepository: ChangeRequestRepository {
         throw NSError(domain: "test", code: 1)
     }
 
-    func createChangeRequest(spaceId: String, subject: String?) async throws -> ChangeRequest {
-        throw NSError(domain: "test", code: 1)
-    }
-
-    func updateChangeRequest(spaceId: String, changeRequestId: String, subject: String?, status: ChangeRequestStatus?) async throws -> ChangeRequest {
+    func getChangeRequestDiff(spaceId: String, changeRequestId: String) async throws -> ChangeRequestDiff {
         throw NSError(domain: "test", code: 1)
     }
 
@@ -453,8 +449,24 @@ class MockChangeRequestRepository: ChangeRequestRepository {
         throw NSError(domain: "test", code: 1)
     }
 
-    func getChangeRequestChanges(spaceId: String, changeRequestId: String) async throws -> [ChangeRequest.Change] {
+    func updateChangeRequestStatus(spaceId: String, changeRequestId: String, status: ChangeRequestStatus) async throws -> ChangeRequest {
         throw NSError(domain: "test", code: 1)
+    }
+
+    func updateChangeRequestSubject(spaceId: String, changeRequestId: String, subject: String) async throws -> ChangeRequest {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func getPageContent(spaceId: String, pageId: String) async throws -> String? {
+        return nil
+    }
+
+    func getChangeRequestPageContent(spaceId: String, changeRequestId: String, pageId: String) async throws -> String? {
+        return nil
+    }
+
+    func getPageContentAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> String? {
+        return nil
     }
 }
 

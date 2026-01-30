@@ -198,6 +198,8 @@ enum APIError: LocalizedError, Equatable {
             return .methodNotAllowed
         case 409:
             return .conflict(message: message)
+        case 412:
+            return .badRequest(message: message)
         case 422:
             if let data = data,
                let validationResponse = try? JSONDecoder().decode(ValidationErrorResponse.self, from: data) {
@@ -252,10 +254,26 @@ struct ValidationError: Codable, Equatable {
 }
 
 /// Response structure for error messages
-struct ErrorResponse: Codable {
+/// Handles both `{"message": "..."}` and `{"error": {"message": "..."}}` formats
+struct ErrorResponse: Decodable {
     let message: String
-    let code: String?
-    let details: [String: String]?
+
+    private enum CodingKeys: String, CodingKey {
+        case message, error
+    }
+
+    private struct NestedError: Codable {
+        let message: String
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let nested = try? container.decode(NestedError.self, forKey: .error) {
+            self.message = nested.message
+        } else {
+            self.message = try container.decode(String.self, forKey: .message)
+        }
+    }
 }
 
 /// Response structure for validation errors

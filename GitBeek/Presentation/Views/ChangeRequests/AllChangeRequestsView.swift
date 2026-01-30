@@ -69,6 +69,11 @@ struct AllChangeRequestsView: View {
         .task {
             await viewModel.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .changeRequestStatusDidChange)) { notification in
+            if let change = notification.object as? ChangeRequestStatusChange {
+                viewModel.updateLocalStatus(changeRequestId: change.changeRequestId, newStatus: change.newStatus)
+            }
+        }
         .alert("Error", isPresented: .constant(viewModel.hasError)) {
             Button("OK") {
                 viewModel.clearError()

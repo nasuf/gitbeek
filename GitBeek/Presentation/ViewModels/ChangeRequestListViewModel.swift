@@ -29,7 +29,7 @@ final class ChangeRequestListViewModel {
     // MARK: - Dependencies
 
     private let changeRequestRepository: ChangeRequestRepository
-    private let spaceId: String
+    let spaceId: String
 
     // MARK: - Computed Properties
 
@@ -101,6 +101,12 @@ final class ChangeRequestListViewModel {
     /// Refresh change requests
     func refresh() async {
         await load()
+    }
+
+    /// Update a change request's status locally
+    func updateLocalStatus(changeRequestId: String, newStatus: ChangeRequestStatus) {
+        guard let index = changeRequests.firstIndex(where: { $0.id == changeRequestId }) else { return }
+        changeRequests[index] = changeRequests[index].withStatus(newStatus)
     }
 
     /// Clear error

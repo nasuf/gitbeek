@@ -48,11 +48,16 @@ struct ChangeRequest: Identifiable, Equatable, Hashable, Sendable {
     let updatedAt: Date?
     let mergedAt: Date?
     let closedAt: Date?
+    let revision: String?
+    let revisionInitial: String?
     let createdBy: UserReference?
     let urls: ChangeRequestURLs?
 
     var displayTitle: String {
-        subject ?? "Change Request #\(number)"
+        if let subject = subject, !subject.isEmpty {
+            return subject
+        }
+        return "Change Request #\(number)"
     }
 
     var isActive: Bool {
@@ -61,6 +66,18 @@ struct ChangeRequest: Identifiable, Equatable, Hashable, Sendable {
 
     var canMerge: Bool {
         status == .open
+    }
+
+    /// Returns a copy with the given status and updated timestamps
+    func withStatus(_ newStatus: ChangeRequestStatus) -> ChangeRequest {
+        ChangeRequest(
+            id: id, number: number, subject: subject, status: newStatus,
+            createdAt: createdAt, updatedAt: Date(),
+            mergedAt: newStatus == .merged ? Date() : mergedAt,
+            closedAt: newStatus == .archived ? Date() : closedAt,
+            revision: revision, revisionInitial: revisionInitial,
+            createdBy: createdBy, urls: urls
+        )
     }
 
     struct ChangeRequestURLs: Equatable, Hashable, Sendable {
@@ -112,19 +129,42 @@ struct DocumentChange: Equatable, Hashable, Sendable {
 
 /// Single change in a change request
 struct Change: Identifiable, Equatable, Hashable, Sendable {
-    var id: String { path }
+    let id: String
     let type: ChangeType
     let path: String
-    let document: DocumentChange?
+    let title: String
+    let isFile: Bool
+    let fileName: String?
+    let titleChange: DocumentChange?
+    /// Whether the document content itself changed (has attributes.document)
+    let hasDocumentChange: Bool
+    /// Markdown content before (from main space) — loaded async
+    var contentBefore: String?
+    /// Markdown content after (from CR) — loaded async
+    var contentAfter: String?
+    /// Whether content has been loaded
+    var contentLoaded: Bool
 
     var displayPath: String {
         path.replacingOccurrences(of: "/", with: " › ")
+    }
+
+    var displayTitle: String {
+        if isFile {
+            return fileName ?? title
+        }
+        return title
+    }
+
+    /// Whether this is a move/rename without content change
+    var isMoveOnly: Bool {
+        type == .modified && !hasDocumentChange && titleChange != nil
     }
 }
 
 /// Change request diff
 struct ChangeRequestDiff: Equatable, Sendable {
-    let changes: [Change]
+    var changes: [Change]
 
     var hasChanges: Bool {
         !changes.isEmpty
@@ -170,6 +210,8 @@ extension ChangeRequest {
             updatedAt: dto.updatedAt,
             mergedAt: dto.mergedAt,
             closedAt: dto.closedAt,
+            revision: dto.revision,
+            revisionInitial: dto.revisionInitial,
             createdBy: dto.createdBy.map { UserReference.from(dto: $0) },
             urls: dto.urls.map { ChangeRequestURLs(location: $0.location, app: $0.app) }
         )
@@ -178,38 +220,65 @@ extension ChangeRequest {
 
 extension Change {
     static func from(dto: ChangeRequestDiffDTO.ChangeDTO) -> Change? {
-        // page is required - if it's missing, return nil
-        guard let page = dto.page else {
-            print("⚠️ [Change] Skipping change with missing page")
-            return nil
-        }
-
         let changeType: ChangeType
         switch dto.type.lowercased() {
-        case "page_added": changeType = .added
+        case "page_created", "page_added", "file_created": changeType = .added
         case "page_edited": changeType = .modified
-        case "page_removed": changeType = .removed
+        case "page_removed", "page_deleted", "file_removed", "file_deleted": changeType = .removed
         default:
             print("⚠️ [Change] Unknown type '\(dto.type)', defaulting to modified")
             changeType = .modified
         }
 
-        // Build document change from attributes
-        let documentChange: DocumentChange?
-        if let attributes = dto.attributes,
-           let titleChange = attributes.title {
-            documentChange = DocumentChange(
-                before: titleChange.before,
-                after: titleChange.after
+        // Handle file changes
+        if let file = dto.file {
+            return Change(
+                id: file.id,
+                type: changeType,
+                path: file.name,
+                title: file.name,
+                isFile: true,
+                fileName: file.name,
+                titleChange: nil,
+                hasDocumentChange: false,
+                contentBefore: nil,
+                contentAfter: nil,
+                contentLoaded: true
             )
-        } else {
-            documentChange = nil
         }
 
+        // Handle page changes
+        guard let page = dto.page else {
+            print("⚠️ [Change] Skipping change with missing page and file")
+            return nil
+        }
+
+        // Build title change from attributes
+        let titleChange: DocumentChange?
+        if let attributes = dto.attributes,
+           let tc = attributes.title {
+            titleChange = DocumentChange(
+                before: tc.before,
+                after: tc.after
+            )
+        } else {
+            titleChange = nil
+        }
+
+        let hasDocumentChange = dto.attributes?.document != nil
+
         return Change(
+            id: page.id,
             type: changeType,
             path: page.path,
-            document: documentChange
+            title: page.title,
+            isFile: false,
+            fileName: nil,
+            titleChange: titleChange,
+            hasDocumentChange: hasDocumentChange,
+            contentBefore: nil,
+            contentAfter: nil,
+            contentLoaded: false
         )
     }
 }

@@ -60,4 +60,22 @@ protocol ChangeRequestRepository: Sendable {
         changeRequestId: String,
         subject: String
     ) async throws -> ChangeRequest
+
+    /// Get page markdown content from the main space (before version)
+    /// - Parameters:
+    ///   - spaceId: Space identifier
+    ///   - pageId: Page identifier
+    /// - Returns: Markdown content string, or nil if page doesn't exist
+    func getPageContent(spaceId: String, pageId: String) async throws -> String?
+
+    /// Get page markdown content from a change request (after version)
+    /// - Parameters:
+    ///   - spaceId: Space identifier
+    ///   - changeRequestId: Change request identifier
+    ///   - pageId: Page identifier
+    /// - Returns: Markdown content string, or nil if page doesn't exist
+    func getChangeRequestPageContent(spaceId: String, changeRequestId: String, pageId: String) async throws -> String?
+
+    /// Get page markdown content at a specific revision
+    func getPageContentAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> String?
 }

@@ -14,6 +14,7 @@ struct HTMLBlockView: View {
     // MARK: - Constants
 
     private static let preCodePattern = #"<pre[^>]*>\s*<code[^>]*>(.*?)</code>\s*</pre>"#
+    private static let figureImgPattern = #"<figure[^>]*>\s*<img\s+src="([^"]+)"[^>]*>.*?</figure>"#
     private static let strongPattern = #"<strong>(.*?)</strong>"#
     private static let emPattern = #"<em>(.*?)</em>"#
 
@@ -23,6 +24,8 @@ struct HTMLBlockView: View {
         if let code = extractCodeFromPreTag() {
             // Reuse CodeBlockView for consistent styling
             CodeBlockView(code: code, language: nil)
+        } else if let imageSource = extractImageFromFigure() {
+            MarkdownImageView(source: imageSource, altText: nil)
         } else {
             formattedTextView
         }
@@ -57,6 +60,26 @@ struct HTMLBlockView: View {
 
         // Trim whitespace
         return code.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // MARK: - Figure/Image Extraction
+
+    /// Extracts image source from <figure><img src="..."> tags
+    private func extractImageFromFigure() -> String? {
+        guard let regex = try? NSRegularExpression(
+            pattern: Self.figureImgPattern,
+            options: [.dotMatchesLineSeparators]
+        ),
+              let match = regex.firstMatch(
+                in: htmlContent,
+                range: NSRange(htmlContent.startIndex..., in: htmlContent)
+              ),
+              match.numberOfRanges > 1,
+              let srcRange = Range(match.range(at: 1), in: htmlContent) else {
+            return nil
+        }
+
+        return decodeHTMLEntities(String(htmlContent[srcRange]))
     }
 
     // MARK: - Views
@@ -112,7 +135,8 @@ struct HTMLBlockView: View {
             "&apos;": "'",
             "&nbsp;": " ",
             "&#39;": "'",
-            "&#x27;": "'"
+            "&#x27;": "'",
+            "&#x26;": "&"
         ]
 
         for (entity, character) in entities {

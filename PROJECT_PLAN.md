@@ -346,13 +346,13 @@ GitBookiOS/
 - [x] 修复测试目标编译问题
 - [x] 代码简化 (减少 ~94 行, 16%)
 - [x] 创建测试文档 (19 个测试场景)
-- [ ] Change Request 详情视图
+- [x] Change Request 详情视图
 - [ ] 创建新 Change Request
 - [ ] 在 Change Request 上下文中编辑
-- [ ] 查看 diff/变更
+- [x] 查看 diff/变更 (段落级 LCS diff，基于 revision API 获取前后内容)
 - [ ] 添加评论
-- [ ] 合并 Change Request
-- [ ] 关闭/丢弃 Change Request
+- [x] 合并 Change Request
+- [x] 关闭/归档 Change Request (本地状态同步更新)
 
 #### 5.2 Review Flow
 - [ ] 请求 review

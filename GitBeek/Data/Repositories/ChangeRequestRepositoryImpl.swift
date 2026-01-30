@@ -87,4 +87,31 @@ final class ChangeRequestRepositoryImpl: ChangeRequestRepository {
         )
         return ChangeRequest.from(dto: dto)
     }
+
+    func getPageContent(spaceId: String, pageId: String) async throws -> String? {
+        do {
+            let dto = try await apiService.getPage(spaceId: spaceId, pageId: pageId)
+            return dto.markdown
+        } catch {
+            return nil
+        }
+    }
+
+    func getChangeRequestPageContent(spaceId: String, changeRequestId: String, pageId: String) async throws -> String? {
+        do {
+            let dto = try await apiService.getChangeRequestPageContent(spaceId: spaceId, changeRequestId: changeRequestId, pageId: pageId)
+            return dto.markdown
+        } catch {
+            return nil
+        }
+    }
+
+    func getPageContentAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> String? {
+        do {
+            let dto = try await apiService.getPageAtRevision(spaceId: spaceId, revisionId: revisionId, pageId: pageId)
+            return dto.markdown
+        } catch {
+            return nil
+        }
+    }
 }

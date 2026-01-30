@@ -27,6 +27,8 @@ struct ChangeRequestDTO: Codable, Equatable, Sendable, Identifiable {
     let updatedAt: Date?
     let mergedAt: Date?
     let closedAt: Date?
+    let revision: String?
+    let revisionInitial: String?
     let createdBy: UserReferenceDTO?
     let urls: ChangeRequestURLsDTO?
 
@@ -66,37 +68,52 @@ struct UpdateChangeRequestDTO: Codable, Sendable {
 /// GitBook API returns an array of changes directly
 struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
     let changes: [ChangeDTO]
+    let more: Int?
 
-    // Custom init to handle array response
+    // Custom init to handle both array and object response formats
     init(from decoder: Decoder) throws {
-        // Try to decode as an array directly
-        if let changesArray = try? [ChangeDTO](from: decoder) {
+        // Try to decode as an object with changes field first (actual API format)
+        if let container = try? decoder.container(keyedBy: CodingKeys.self) {
+            self.changes = (try? container.decode([ChangeDTO].self, forKey: .changes)) ?? []
+            self.more = try? container.decodeIfPresent(Int.self, forKey: .more)
+        } else if let changesArray = try? [ChangeDTO](from: decoder) {
+            // Fallback: try to decode as an array directly
             self.changes = changesArray
+            self.more = nil
         } else {
-            // Fallback: try to decode as an object with changes field
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.changes = try container.decode([ChangeDTO].self, forKey: .changes)
+            self.changes = []
+            self.more = nil
         }
     }
 
-    init(changes: [ChangeDTO]) {
+    init(changes: [ChangeDTO], more: Int? = nil) {
         self.changes = changes
+        self.more = more
     }
 
     enum CodingKeys: String, CodingKey {
         case changes
+        case more
     }
 
     struct ChangeDTO: Codable, Equatable, Sendable {
-        let type: String  // "page_edited", "page_added", "page_removed"
+        let type: String  // "page_created", "page_edited", "page_removed", "file_created", "file_removed"
         let page: PageDTO?
+        let file: FileDTO?
         let attributes: AttributesDTO?
 
         struct PageDTO: Codable, Equatable, Sendable {
             let id: String
-            let type: String
+            let type: String?
             let title: String
             let path: String
+        }
+
+        struct FileDTO: Codable, Equatable, Sendable {
+            let id: String
+            let name: String
+            let contentType: String?
+            let downloadURL: String?
         }
 
         struct AttributesDTO: Codable, Equatable, Sendable {
@@ -109,8 +126,8 @@ struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
             }
 
             struct DocumentReferenceDTO: Codable, Equatable, Sendable {
-                let before: String?  // Document ID
-                let after: String?   // Document ID
+                let before: String?  // Document revision ID
+                let after: String?   // Document revision ID
             }
         }
     }

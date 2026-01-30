@@ -101,6 +101,12 @@ enum GitBookEndpoint: APIEndpoint {
     /// Get change request diff
     case getChangeRequestDiff(spaceId: String, changeRequestId: String)
 
+    /// Get page content in change request context (after version)
+    case getChangeRequestPageContent(spaceId: String, changeRequestId: String, pageId: String)
+
+    /// Get page content at a specific revision (for before version of merged CRs)
+    case getPageAtRevision(spaceId: String, revisionId: String, pageId: String)
+
     // MARK: - Search
 
     /// Search in organization
@@ -176,6 +182,10 @@ enum GitBookEndpoint: APIEndpoint {
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/merge"
         case .getChangeRequestDiff(let spaceId, let changeRequestId):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/changes"
+        case .getChangeRequestPageContent(let spaceId, let changeRequestId, let pageId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/content/page/\(pageId)"
+        case .getPageAtRevision(let spaceId, let revisionId, let pageId):
+            return "/spaces/\(spaceId)/revisions/\(revisionId)/page/\(pageId)"
 
         // Search
         case .searchOrganization(let orgId, _, _):
@@ -226,6 +236,12 @@ enum GitBookEndpoint: APIEndpoint {
             return ["format": "markdown"]
 
         case .getPageByPath(_, _):
+            return ["format": "markdown"]
+
+        case .getChangeRequestPageContent(_, _, _):
+            return ["format": "markdown"]
+
+        case .getPageAtRevision(_, _, _):
             return ["format": "markdown"]
 
         default:
