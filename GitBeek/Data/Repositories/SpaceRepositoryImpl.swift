@@ -150,6 +150,26 @@ actor SpaceRepositoryImpl: SpaceRepository {
         return space
     }
 
+    func moveSpace(id: String, parentId: String?) async throws {
+        try await apiService.moveSpace(spaceId: id, parentId: parentId)
+
+        // Update cache - update parentId
+        for (orgId, var spaces) in cachedSpaces {
+            if let index = spaces.firstIndex(where: { $0.id == id }) {
+                let old = spaces[index]
+                spaces[index] = Space(
+                    id: old.id, title: old.title, emoji: old.emoji,
+                    visibility: old.visibility, type: old.type,
+                    appURL: old.appURL, publishedURL: old.publishedURL,
+                    parentId: parentId, organizationId: old.organizationId,
+                    createdAt: old.createdAt, updatedAt: old.updatedAt, deletedAt: old.deletedAt
+                )
+                cachedSpaces[orgId] = spaces
+                break
+            }
+        }
+    }
+
     func deleteSpace(id: String) async throws {
         try await apiService.deleteSpace(spaceId: id)
 
@@ -183,6 +203,54 @@ actor SpaceRepositoryImpl: SpaceRepository {
         }
 
         return space
+    }
+
+    func renameCollection(id: String, title: String) async throws -> Collection {
+        let dto = try await apiService.updateCollection(collectionId: id, title: title)
+        let collection = Collection(from: dto)
+
+        // Update cache
+        for (orgId, var collections) in cachedCollections {
+            if let index = collections.firstIndex(where: { $0.id == id }) {
+                collections[index] = collection
+                cachedCollections[orgId] = collections
+                break
+            }
+        }
+
+        return collection
+    }
+
+    func deleteCollection(id: String) async throws {
+        try await apiService.deleteCollection(collectionId: id)
+
+        // Remove from cache
+        for (orgId, var collections) in cachedCollections {
+            if let index = collections.firstIndex(where: { $0.id == id }) {
+                collections.remove(at: index)
+                cachedCollections[orgId] = collections
+                break
+            }
+        }
+    }
+
+    func moveCollection(id: String, parentId: String?) async throws {
+        try await apiService.moveCollection(collectionId: id, parentId: parentId)
+
+        // Update cache - update parentId
+        for (orgId, var collections) in cachedCollections {
+            if let index = collections.firstIndex(where: { $0.id == id }) {
+                let old = collections[index]
+                collections[index] = Collection(
+                    id: old.id, title: old.title, emoji: old.emoji,
+                    description: old.description, appURL: old.appURL,
+                    parentId: parentId, organizationId: old.organizationId,
+                    createdAt: old.createdAt, updatedAt: old.updatedAt
+                )
+                cachedCollections[orgId] = collections
+                break
+            }
+        }
     }
 
     func getCachedSpaces(organizationId: String) async -> [Space] {

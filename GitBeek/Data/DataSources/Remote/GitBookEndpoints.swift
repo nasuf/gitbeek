@@ -44,6 +44,15 @@ enum GitBookEndpoint: APIEndpoint {
     /// Create collection in organization
     case createCollection(orgId: String, request: CreateCollectionRequestDTO)
 
+    /// Update collection (rename)
+    case updateCollection(collectionId: String, request: UpdateCollectionRequestDTO)
+
+    /// Delete collection
+    case deleteCollection(collectionId: String)
+
+    /// Move collection to another parent
+    case moveCollection(collectionId: String, request: MoveParentRequestDTO)
+
     // MARK: - Spaces
 
     /// List spaces in organization
@@ -57,6 +66,9 @@ enum GitBookEndpoint: APIEndpoint {
 
     /// Update space
     case updateSpace(spaceId: String, request: SpaceRequestDTO)
+
+    /// Move space to another parent
+    case moveSpace(spaceId: String, request: MoveParentRequestDTO)
 
     /// Delete space (soft delete - moves to trash)
     case deleteSpace(spaceId: String)
@@ -154,6 +166,12 @@ enum GitBookEndpoint: APIEndpoint {
             return "/collections/\(collectionId)"
         case .createCollection(let orgId, _):
             return "/orgs/\(orgId)/collections"
+        case .updateCollection(let collectionId, _):
+            return "/collections/\(collectionId)"
+        case .deleteCollection(let collectionId):
+            return "/collections/\(collectionId)"
+        case .moveCollection(let collectionId, _):
+            return "/collections/\(collectionId)/move"
 
         // Spaces
         case .listSpaces(let orgId, _):
@@ -164,6 +182,8 @@ enum GitBookEndpoint: APIEndpoint {
             return "/orgs/\(orgId)/spaces"
         case .updateSpace(let spaceId, _):
             return "/spaces/\(spaceId)"
+        case .moveSpace(let spaceId, _):
+            return "/spaces/\(spaceId)/move"
         case .deleteSpace(let spaceId):
             return "/spaces/\(spaceId)"
         case .restoreSpace(let spaceId):
@@ -220,11 +240,12 @@ enum GitBookEndpoint: APIEndpoint {
         case .exchangeToken, .refreshToken,
              .createSpace, .createCollection, .createPage, .createChangeRequest,
              .mergeChangeRequest, .restoreSpace,
-             .submitChangeRequestReview:
+             .submitChangeRequestReview,
+             .moveSpace, .moveCollection:
             return .post
-        case .updateSpace, .updatePage, .updateChangeRequest:
+        case .updateSpace, .updatePage, .updateChangeRequest, .updateCollection:
             return .patch
-        case .deleteSpace, .deletePage:
+        case .deleteSpace, .deletePage, .deleteCollection:
             return .delete
         default:
             return .get
@@ -279,6 +300,12 @@ enum GitBookEndpoint: APIEndpoint {
         case .createSpace(_, let request), .updateSpace(_, let request):
             return request
         case .createCollection(_, let request):
+            return request
+        case .updateCollection(_, let request):
+            return request
+        case .moveCollection(_, let request):
+            return request
+        case .moveSpace(_, let request):
             return request
         case .createPage(_, let request), .updatePage(_, _, let request):
             return request

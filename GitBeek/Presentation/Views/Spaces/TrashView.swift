@@ -169,8 +169,12 @@ private actor PreviewSpaceRepository: SpaceRepository {
     func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, parentId: String?) async throws -> Space { fatalError() }
     func createCollection(organizationId: String, title: String, parentId: String?) async throws -> Collection { fatalError() }
     func updateSpace(id: String, title: String?, emoji: String?, visibility: Space.Visibility?, parentId: String?) async throws -> Space { fatalError() }
+    func moveSpace(id: String, parentId: String?) async throws {}
     func deleteSpace(id: String) async throws {}
     func restoreSpace(id: String) async throws -> Space { fatalError() }
+    func renameCollection(id: String, title: String) async throws -> Collection { fatalError() }
+    func deleteCollection(id: String) async throws {}
+    func moveCollection(id: String, parentId: String?) async throws {}
     func getCachedSpaces(organizationId: String) async -> [Space] { [] }
     func clearCache() async {}
 }

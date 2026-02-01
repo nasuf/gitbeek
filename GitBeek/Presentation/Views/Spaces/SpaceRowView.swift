@@ -12,8 +12,15 @@ struct SpaceRowView: View {
     // MARK: - Properties
 
     let space: Space
+    let collections: [Collection]
     let onTap: () -> Void
     let onDelete: () -> Void
+    let onMove: (String?) -> Void
+    let onRename: (String) -> Void
+
+    @State private var showRenameAlert = false
+    @State private var showDeleteAlert = false
+    @State private var renameText = ""
 
     // MARK: - Body
 
@@ -23,10 +30,8 @@ struct SpaceRowView: View {
             onTap()
         } label: {
             HStack(spacing: AppSpacing.md) {
-                // Space icon/emoji
                 spaceIcon
 
-                // Title and metadata
                 VStack(alignment: .leading, spacing: 2) {
                     Text(space.title)
                         .font(AppTypography.bodyLarge)
@@ -53,7 +58,16 @@ struct SpaceRowView: View {
         .buttonStyle(.scalePress)
         .glassStyle(cornerRadius: AppSpacing.cornerRadiusLarge)
         .contextMenu {
-            contextMenuItems
+            SpaceContextMenu(
+                space: space,
+                collections: collections,
+                onMove: onMove,
+                onRename: {
+                    renameText = space.title
+                    showRenameAlert = true
+                },
+                onDelete: { showDeleteAlert = true }
+            )
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
@@ -61,6 +75,26 @@ struct SpaceRowView: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+        }
+        .alert("Rename Space", isPresented: $showRenameAlert) {
+            TextField("New name", text: $renameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") {
+                let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    onRename(trimmed)
+                }
+            }
+        } message: {
+            Text("Enter a new name for this space.")
+        }
+        .alert("Delete Space", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(space.title)\"? It will be moved to trash and can be restored within 7 days.")
         }
     }
 
@@ -108,15 +142,75 @@ struct SpaceRowView: View {
                     .fill(.ultraThinMaterial)
             )
     }
+}
 
-    // MARK: - Context Menu
+// MARK: - Shared Space Context Menu
 
-    @ViewBuilder
-    private var contextMenuItems: some View {
-        Button {
-            onTap()
+/// Reusable context menu for space items with nested Move/Copy submenus
+struct SpaceContextMenu: View {
+    let space: Space
+    let collections: [Collection]
+    let onMove: (String?) -> Void
+    let onRename: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        Menu {
+            Button {
+                onMove(nil)
+            } label: {
+                Label("None (Top Level)", systemImage: "arrow.up.to.line")
+            }
+
+            Divider()
+
+            ForEach(collections.filter { $0.id != space.parentId }) { collection in
+                Button {
+                    onMove(collection.id)
+                } label: {
+                    Label(collection.displayTitle, systemImage: "folder")
+                }
+            }
         } label: {
-            Label("Open", systemImage: "arrow.right.circle")
+            Label("Move to...", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+        }
+
+        Button {
+            onRename()
+        } label: {
+            Label("Rename", systemImage: "pencil")
+        }
+
+        Menu {
+            if let appURL = space.appURL {
+                Button {
+                    UIPasteboard.general.string = appURL.absoluteString
+                } label: {
+                    Label("Copy Link", systemImage: "link")
+                }
+            }
+
+            Button {
+                UIPasteboard.general.string = space.id
+            } label: {
+                Label("Copy ID", systemImage: "number")
+            }
+
+            Button {
+                UIPasteboard.general.string = space.title
+            } label: {
+                Label("Copy Title", systemImage: "doc.on.doc")
+            }
+
+            if let appURL = space.appURL {
+                Button {
+                    UIPasteboard.general.string = "[\(space.title)](\(appURL.absoluteString))"
+                } label: {
+                    Label("Copy Title as Link", systemImage: "link.badge.plus")
+                }
+            }
+        } label: {
+            Label("Copy", systemImage: "doc.on.doc")
         }
 
         Divider()
@@ -148,27 +242,11 @@ struct SpaceRowView: View {
                 updatedAt: nil,
                 deletedAt: nil
             ),
+            collections: [],
             onTap: {},
-            onDelete: {}
-        )
-
-        SpaceRowView(
-            space: Space(
-                id: "2",
-                title: "Internal Docs",
-                emoji: nil,
-                visibility: .private,
-                type: .document,
-                appURL: nil,
-                publishedURL: nil,
-                parentId: nil,
-                organizationId: nil,
-                createdAt: nil,
-                updatedAt: nil,
-                deletedAt: nil
-            ),
-            onTap: {},
-            onDelete: {}
+            onDelete: {},
+            onMove: { _ in },
+            onRename: { _ in }
         )
     }
     .padding()

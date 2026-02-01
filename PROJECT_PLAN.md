@@ -219,6 +219,10 @@ GitBookiOS/
 - [x] 实现 Collections API
   - [x] GET /orgs/{orgId}/collections - 列出集合
   - [x] GET /collections/{collectionId} - 获取集合详情
+  - [x] PATCH /collections/{collectionId} - 重命名集合
+  - [x] DELETE /collections/{collectionId} - 删除集合
+  - [x] POST /collections/{collectionId}/move - 移动集合
+  - [x] POST /spaces/{spaceId}/move - 移动空间
 - [x] 实现 Spaces Trash API
   - [x] DELETE /spaces/{spaceId} - 软删除空间
   - [x] POST /spaces/{spaceId}/restore - 恢复空间
@@ -274,6 +278,7 @@ GitBookiOS/
 - [x] 删除空间 (confirmation dialog)
 - [x] 空间搜索/过滤
 - [x] Collection 层级视图
+- [x] Space/Collection 上下文菜单 (Move to, Rename, Copy, Delete)
 
 #### 3.3 Pages Navigation
 - [x] 目录树视图 (OutlineGroup)

@@ -305,6 +305,103 @@ final class SpaceListViewModel {
         isLoading = false
     }
 
+    /// Move space to a collection (nil = top level)
+    func moveSpace(id: String, toCollectionId: String?) async {
+        error = nil
+        do {
+            try await spaceRepository.moveSpace(id: id, parentId: toCollectionId)
+            // Update local parentId
+            if let index = allSpaces.firstIndex(where: { $0.id == id }) {
+                let old = allSpaces[index]
+                allSpaces[index] = Space(
+                    id: old.id, title: old.title, emoji: old.emoji,
+                    visibility: old.visibility, type: old.type,
+                    appURL: old.appURL, publishedURL: old.publishedURL,
+                    parentId: toCollectionId, organizationId: old.organizationId,
+                    createdAt: old.createdAt, updatedAt: old.updatedAt, deletedAt: old.deletedAt
+                )
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+        }
+    }
+
+    /// Move collection to another parent (nil = top level)
+    func moveCollection(id: String, toCollectionId: String?) async {
+        error = nil
+        do {
+            try await spaceRepository.moveCollection(id: id, parentId: toCollectionId)
+            if let index = allCollections.firstIndex(where: { $0.id == id }) {
+                let old = allCollections[index]
+                allCollections[index] = Collection(
+                    id: old.id, title: old.title, emoji: old.emoji,
+                    description: old.description, appURL: old.appURL,
+                    parentId: toCollectionId, organizationId: old.organizationId,
+                    createdAt: old.createdAt, updatedAt: old.updatedAt
+                )
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+        }
+    }
+
+    /// Rename space
+    func renameSpace(id: String, title: String) async {
+        error = nil
+        do {
+            let updated = try await spaceRepository.updateSpace(id: id, title: title, emoji: nil, visibility: nil, parentId: nil)
+            if let index = allSpaces.firstIndex(where: { $0.id == id }) {
+                allSpaces[index] = updated
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+        }
+    }
+
+    /// Rename collection
+    func renameCollection(id: String, title: String) async {
+        error = nil
+        do {
+            let updated = try await spaceRepository.renameCollection(id: id, title: title)
+            if let index = allCollections.firstIndex(where: { $0.id == id }) {
+                allCollections[index] = updated
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+        }
+    }
+
+    /// Delete collection
+    func deleteCollection(id: String) async {
+        error = nil
+        do {
+            try await spaceRepository.deleteCollection(id: id)
+            // Remove the collection and all its child spaces/sub-collections
+            let removedCollectionIds = collectAllDescendantCollectionIds(id)
+            allCollections.removeAll { removedCollectionIds.contains($0.id) }
+            allSpaces.removeAll { space in
+                guard let parentId = space.parentId else { return false }
+                return removedCollectionIds.contains(parentId)
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+        }
+    }
+
+    /// Collect a collection ID and all its descendant collection IDs
+    private func collectAllDescendantCollectionIds(_ id: String) -> Set<String> {
+        var result: Set<String> = [id]
+        for collection in allCollections where collection.parentId == id {
+            result.formUnion(collectAllDescendantCollectionIds(collection.id))
+        }
+        return result
+    }
+
     /// Toggle collection expansion
     func toggleCollection(id: String) {
         if expandedCollections.contains(id) {

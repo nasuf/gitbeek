@@ -13,25 +13,53 @@ struct CollectionRowView: View {
 
     let collection: SpaceListViewModel.CollectionWithSpaces
     let isExpanded: Bool
+    let allCollections: [Collection]
     let onToggle: () -> Void
     let onSpaceTap: (Space) -> Void
     let onDelete: (Space) -> Void
+    let onMoveSpace: (Space, String?) -> Void
+    let onRenameSpace: (Space, String) -> Void
+    let onMoveCollection: (String, String?) -> Void   // (collectionId, targetParentId)
+    let onRenameCollection: (String, String) -> Void  // (collectionId, newTitle)
+    let onDeleteCollection: (String) -> Void           // (collectionId)
     var isExpandedCheck: ((String) -> Bool)?
     var onToggleById: ((String) -> Void)?
+
+    @State private var showRenameAlert = false
+    @State private var showDeleteAlert = false
+    @State private var renameText = ""
 
     // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
-            // Collection header
             collectionHeader
 
-            // Children (when expanded)
             if isExpanded && collection.childCount > 0 {
                 childrenList
             }
         }
         .glassStyle(cornerRadius: AppSpacing.cornerRadiusLarge)
+        .alert("Rename Collection", isPresented: $showRenameAlert) {
+            TextField("New name", text: $renameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") {
+                let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    onRenameCollection(collection.id, trimmed)
+                }
+            }
+        } message: {
+            Text("Enter a new name for this collection.")
+        }
+        .alert("Delete Collection", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                onDeleteCollection(collection.id)
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(collection.collection.title)\"?\n\nAll spaces inside will also be deleted. Spaces can be restored from trash within 7 days, but the collection itself cannot be recovered.")
+        }
     }
 
     // MARK: - Collection Header
@@ -42,17 +70,14 @@ struct CollectionRowView: View {
             onToggle()
         } label: {
             HStack(spacing: AppSpacing.md) {
-                // Expand/collapse chevron
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isExpanded)
 
-                // Collection icon/emoji
                 collectionIcon
 
-                // Title and count
                 VStack(alignment: .leading, spacing: 2) {
                     Text(collection.collection.title)
                         .font(AppTypography.bodyLarge)
@@ -66,7 +91,6 @@ struct CollectionRowView: View {
 
                 Spacer()
 
-                // Child count badge with glass effect
                 if collection.childCount > 0 {
                     Text("\(collection.childCount)")
                         .font(.system(size: 12, weight: .medium))
@@ -83,6 +107,81 @@ struct CollectionRowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.scalePress)
+        .contextMenu {
+            collectionContextMenu
+        }
+    }
+
+    // MARK: - Collection Context Menu
+
+    @ViewBuilder
+    private var collectionContextMenu: some View {
+        Menu {
+            Button {
+                onMoveCollection(collection.id, nil)
+            } label: {
+                Label("None (Top Level)", systemImage: "arrow.up.to.line")
+            }
+
+            Divider()
+
+            ForEach(allCollections.filter { $0.id != collection.id && $0.id != collection.collection.parentId }) { col in
+                Button {
+                    onMoveCollection(collection.id, col.id)
+                } label: {
+                    Label(col.displayTitle, systemImage: "folder")
+                }
+            }
+        } label: {
+            Label("Move to...", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+        }
+
+        Button {
+            renameText = collection.collection.title
+            showRenameAlert = true
+        } label: {
+            Label("Rename", systemImage: "pencil")
+        }
+
+        Menu {
+            if let appURL = collection.collection.appURL {
+                Button {
+                    UIPasteboard.general.string = appURL.absoluteString
+                } label: {
+                    Label("Copy Link", systemImage: "link")
+                }
+            }
+
+            Button {
+                UIPasteboard.general.string = collection.id
+            } label: {
+                Label("Copy ID", systemImage: "number")
+            }
+
+            Button {
+                UIPasteboard.general.string = collection.collection.title
+            } label: {
+                Label("Copy Title", systemImage: "doc.on.doc")
+            }
+
+            if let appURL = collection.collection.appURL {
+                Button {
+                    UIPasteboard.general.string = "[\(collection.collection.title)](\(appURL.absoluteString))"
+                } label: {
+                    Label("Copy Title as Link", systemImage: "link.badge.plus")
+                }
+            }
+        } label: {
+            Label("Copy", systemImage: "doc.on.doc")
+        }
+
+        Divider()
+
+        Button(role: .destructive) {
+            showDeleteAlert = true
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
     }
 
     // MARK: - Collection Icon
@@ -93,7 +192,7 @@ struct CollectionRowView: View {
                 Text(emoji)
                     .font(.title2)
             } else {
-                Image(systemName: isExpanded ? "folder.fill" : "folder")
+                Image(systemName: "folder.fill")
                     .font(.title3)
                     .foregroundStyle(AppColors.secondaryFallback)
             }
@@ -109,45 +208,66 @@ struct CollectionRowView: View {
 
     private var childrenList: some View {
         VStack(spacing: 0) {
-            // Separator line
             Rectangle()
                 .fill(.quaternary)
                 .frame(height: 0.5)
                 .padding(.horizontal, AppSpacing.md)
 
             VStack(spacing: AppSpacing.sm) {
-                // Sub-collections
                 ForEach(collection.childCollections) { subCollection in
                     CollectionRowView(
                         collection: subCollection,
                         isExpanded: isExpandedCheck?(subCollection.id) ?? false,
+                        allCollections: allCollections,
                         onToggle: { onToggleById?(subCollection.id) },
                         onSpaceTap: onSpaceTap,
                         onDelete: onDelete,
+                        onMoveSpace: onMoveSpace,
+                        onRenameSpace: onRenameSpace,
+                        onMoveCollection: onMoveCollection,
+                        onRenameCollection: onRenameCollection,
+                        onDeleteCollection: onDeleteCollection,
                         isExpandedCheck: isExpandedCheck,
                         onToggleById: onToggleById
                     )
                 }
 
-                // Child spaces
                 ForEach(collection.children) { space in
-                    childSpaceRow(space)
+                    ChildSpaceRowView(
+                        space: space,
+                        collections: allCollections,
+                        onTap: { onSpaceTap(space) },
+                        onDelete: { onDelete(space) },
+                        onMove: { parentId in onMoveSpace(space, parentId) },
+                        onRename: { title in onRenameSpace(space, title) }
+                    )
                 }
             }
             .padding(AppSpacing.md)
             .padding(.leading, AppSpacing.lg)
         }
     }
+}
 
-    // MARK: - Child Space Row
+/// Child space row inside a collection, with its own @State for alerts
+private struct ChildSpaceRowView: View {
+    let space: Space
+    let collections: [Collection]
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    let onMove: (String?) -> Void
+    let onRename: (String) -> Void
 
-    private func childSpaceRow(_ space: Space) -> some View {
+    @State private var showRenameAlert = false
+    @State private var showDeleteAlert = false
+    @State private var renameText = ""
+
+    var body: some View {
         Button {
             HapticFeedback.selection()
-            onSpaceTap(space)
+            onTap()
         } label: {
             HStack(spacing: AppSpacing.sm) {
-                // Space icon
                 Group {
                     if let emoji = space.emoji {
                         Text(emoji)
@@ -180,26 +300,43 @@ struct CollectionRowView: View {
         }
         .buttonStyle(.scalePress(scale: 0.98, duration: 0.1))
         .contextMenu {
-            Button {
-                onSpaceTap(space)
-            } label: {
-                Label("Open", systemImage: "arrow.right.circle")
-            }
-
-            Divider()
-
+            SpaceContextMenu(
+                space: space,
+                collections: collections,
+                onMove: onMove,
+                onRename: {
+                    renameText = space.title
+                    showRenameAlert = true
+                },
+                onDelete: { showDeleteAlert = true }
+            )
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
-                onDelete(space)
+                onDelete()
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(role: .destructive) {
-                onDelete(space)
-            } label: {
-                Label("Delete", systemImage: "trash")
+        .alert("Rename Space", isPresented: $showRenameAlert) {
+            TextField("New name", text: $renameText)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename") {
+                let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    onRename(trimmed)
+                }
             }
+        } message: {
+            Text("Enter a new name for this space.")
+        }
+        .alert("Delete Space", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+        } message: {
+            Text("Are you sure you want to delete \"\(space.title)\"? It will be moved to trash and can be restored within 7 days.")
         }
     }
 }
@@ -235,27 +372,19 @@ struct CollectionRowView: View {
                         createdAt: nil,
                         updatedAt: nil,
                         deletedAt: nil
-                    ),
-                    Space(
-                        id: "2",
-                        title: "SDK Guide",
-                        emoji: nil,
-                        visibility: .public,
-                        type: .document,
-                        appURL: nil,
-                        publishedURL: nil,
-                        parentId: "col1",
-                        organizationId: nil,
-                        createdAt: nil,
-                        updatedAt: nil,
-                        deletedAt: nil
                     )
                 ]
             ),
             isExpanded: true,
+            allCollections: [],
             onToggle: {},
             onSpaceTap: { _ in },
-            onDelete: { _ in }
+            onDelete: { _ in },
+            onMoveSpace: { _, _ in },
+            onRenameSpace: { _, _ in },
+            onMoveCollection: { _, _ in },
+            onRenameCollection: { _, _ in },
+            onDeleteCollection: { _ in }
         )
     }
     .padding()

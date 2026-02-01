@@ -43,11 +43,23 @@ protocol SpaceRepository: Sendable {
         parentId: String?
     ) async throws -> Space
 
+    /// Move space to another parent collection (nil = top level)
+    func moveSpace(id: String, parentId: String?) async throws
+
     /// Delete space (soft delete - moves to trash)
     func deleteSpace(id: String) async throws
 
     /// Restore deleted space from trash
     func restoreSpace(id: String) async throws -> Space
+
+    /// Rename collection
+    func renameCollection(id: String, title: String) async throws -> Collection
+
+    /// Delete collection
+    func deleteCollection(id: String) async throws
+
+    /// Move collection to another parent (nil = top level)
+    func moveCollection(id: String, parentId: String?) async throws
 
     /// Get cached spaces for organization
     func getCachedSpaces(organizationId: String) async -> [Space]

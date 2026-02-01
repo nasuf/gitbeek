@@ -541,11 +541,21 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
         throw NSError(domain: "test", code: 1)
     }
 
+    func moveSpace(id: String, parentId: String?) async throws {}
+
     func deleteSpace(id: String) async throws {}
 
     func restoreSpace(id: String) async throws -> Space {
         throw NSError(domain: "test", code: 1)
     }
+
+    func renameCollection(id: String, title: String) async throws -> Collection {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func deleteCollection(id: String) async throws {}
+
+    func moveCollection(id: String, parentId: String?) async throws {}
 
     func getCachedSpaces(organizationId: String) async -> [Space] {
         return mockSpaces

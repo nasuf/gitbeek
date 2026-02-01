@@ -150,6 +150,7 @@ struct SpaceListView: View {
                     CollectionRowView(
                         collection: collection,
                         isExpanded: viewModel.isExpanded(collection.id) || viewModel.isSearching,
+                        allCollections: viewModel.allCollections,
                         onToggle: {
                             viewModel.toggleCollection(id: collection.id)
                         },
@@ -159,6 +160,31 @@ struct SpaceListView: View {
                         onDelete: { space in
                             Task {
                                 await viewModel.deleteSpace(id: space.id)
+                            }
+                        },
+                        onMoveSpace: { space, parentId in
+                            Task {
+                                await viewModel.moveSpace(id: space.id, toCollectionId: parentId)
+                            }
+                        },
+                        onRenameSpace: { space, title in
+                            Task {
+                                await viewModel.renameSpace(id: space.id, title: title)
+                            }
+                        },
+                        onMoveCollection: { collectionId, parentId in
+                            Task {
+                                await viewModel.moveCollection(id: collectionId, toCollectionId: parentId)
+                            }
+                        },
+                        onRenameCollection: { collectionId, title in
+                            Task {
+                                await viewModel.renameCollection(id: collectionId, title: title)
+                            }
+                        },
+                        onDeleteCollection: { collectionId in
+                            Task {
+                                await viewModel.deleteCollection(id: collectionId)
                             }
                         },
                         isExpandedCheck: { id in
@@ -180,12 +206,23 @@ struct SpaceListView: View {
                 ForEach(viewModel.filteredTopLevelSpaces) { space in
                     SpaceRowView(
                         space: space,
+                        collections: viewModel.allCollections,
                         onTap: {
                             router.navigate(to: .spaceDetail(spaceId: space.id))
                         },
                         onDelete: {
                             Task {
                                 await viewModel.deleteSpace(id: space.id)
+                            }
+                        },
+                        onMove: { parentId in
+                            Task {
+                                await viewModel.moveSpace(id: space.id, toCollectionId: parentId)
+                            }
+                        },
+                        onRename: { title in
+                            Task {
+                                await viewModel.renameSpace(id: space.id, title: title)
                             }
                         }
                     )
@@ -225,12 +262,23 @@ struct SpaceListView: View {
             ForEach(viewModel.flatSpaces) { space in
                 SpaceRowView(
                     space: space,
+                    collections: viewModel.allCollections,
                     onTap: {
                         router.navigate(to: .spaceDetail(spaceId: space.id))
                     },
                     onDelete: {
                         Task {
                             await viewModel.deleteSpace(id: space.id)
+                        }
+                    },
+                    onMove: { parentId in
+                        Task {
+                            await viewModel.moveSpace(id: space.id, toCollectionId: parentId)
+                        }
+                    },
+                    onRename: { title in
+                        Task {
+                            await viewModel.renameSpace(id: space.id, title: title)
                         }
                     }
                 )

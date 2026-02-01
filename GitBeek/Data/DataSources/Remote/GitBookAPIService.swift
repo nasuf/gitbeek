@@ -124,6 +124,23 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.getCollection(collectionId: collectionId))
     }
 
+    /// Update collection (rename)
+    func updateCollection(collectionId: String, title: String) async throws -> CollectionDTO {
+        let request = UpdateCollectionRequestDTO(title: title)
+        return try await client.request(GitBookEndpoint.updateCollection(collectionId: collectionId, request: request))
+    }
+
+    /// Delete collection
+    func deleteCollection(collectionId: String) async throws {
+        try await client.requestVoid(GitBookEndpoint.deleteCollection(collectionId: collectionId))
+    }
+
+    /// Move collection to another parent (nil = top level)
+    func moveCollection(collectionId: String, parentId: String?) async throws {
+        let request = MoveParentRequestDTO(parent: parentId)
+        try await client.requestVoid(GitBookEndpoint.moveCollection(collectionId: collectionId, request: request))
+    }
+
     // MARK: - Spaces
 
     /// List spaces in organization
@@ -166,6 +183,12 @@ actor GitBookAPIService {
     func updateSpace(spaceId: String, title: String? = nil, emoji: String? = nil, visibility: SpaceVisibility? = nil) async throws -> SpaceDTO {
         let request = SpaceRequestDTO(title: title, emoji: emoji, visibility: visibility)
         return try await client.request(GitBookEndpoint.updateSpace(spaceId: spaceId, request: request))
+    }
+
+    /// Move space to another parent (nil = top level)
+    func moveSpace(spaceId: String, parentId: String?) async throws {
+        let request = MoveParentRequestDTO(parent: parentId)
+        try await client.requestVoid(GitBookEndpoint.moveSpace(spaceId: spaceId, request: request))
     }
 
     /// Delete space (soft delete - moves to trash)

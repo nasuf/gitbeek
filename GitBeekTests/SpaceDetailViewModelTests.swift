@@ -491,6 +491,10 @@ private final class MockSpaceRepositoryForDetail: SpaceRepository, @unchecked Se
         return space
     }
 
+    func moveSpace(id: String, parentId: String?) async throws {
+        if shouldFail { throw MockDetailError.failed }
+    }
+
     func deleteSpace(id: String) async throws {
         if shouldFail {
             throw MockDetailError.failed
@@ -505,6 +509,18 @@ private final class MockSpaceRepositoryForDetail: SpaceRepository, @unchecked Se
             throw MockDetailError.notFound
         }
         return space
+    }
+
+    func renameCollection(id: String, title: String) async throws -> Collection {
+        throw MockDetailError.failed
+    }
+
+    func deleteCollection(id: String) async throws {
+        throw MockDetailError.failed
+    }
+
+    func moveCollection(id: String, parentId: String?) async throws {
+        throw MockDetailError.failed
     }
 
     func getCachedSpaces(organizationId: String) async -> [Space] {

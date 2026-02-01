@@ -516,6 +516,307 @@ final class SpaceListViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isExpanded("col3"))
     }
 
+    // MARK: - Move Space
+
+    func testMoveSpaceToCollection() async {
+        let collection = makeCollection(id: "col1", title: "Target")
+        let space = makeSpace(id: "s1", title: "Space 1")
+
+        mockRepository.mockCollections = [collection]
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.topLevelSpaces.count, 1)
+        XCTAssertTrue(viewModel.collections.first?.children.isEmpty ?? true)
+
+        await viewModel.moveSpace(id: "s1", toCollectionId: "col1")
+
+        XCTAssertTrue(viewModel.topLevelSpaces.isEmpty)
+        XCTAssertEqual(viewModel.collections.first?.children.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.first?.parentId, "col1")
+    }
+
+    func testMoveSpaceToTopLevel() async {
+        let collection = makeCollection(id: "col1", title: "Source")
+        let space = makeSpace(id: "s1", title: "Space 1", parentId: "col1")
+
+        mockRepository.mockCollections = [collection]
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.collections.first?.children.count, 1)
+        XCTAssertTrue(viewModel.topLevelSpaces.isEmpty)
+
+        await viewModel.moveSpace(id: "s1", toCollectionId: nil)
+
+        XCTAssertEqual(viewModel.topLevelSpaces.count, 1)
+        XCTAssertTrue(viewModel.collections.first?.children.isEmpty ?? true)
+        XCTAssertNil(viewModel.allSpaces.first?.parentId)
+    }
+
+    func testMoveSpaceFailure() async {
+        let space = makeSpace(id: "s1", title: "Space 1")
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        mockRepository.shouldFail = true
+        await viewModel.moveSpace(id: "s1", toCollectionId: "col1")
+
+        XCTAssertNotNil(viewModel.error)
+        // parentId should NOT have changed
+        XCTAssertNil(viewModel.allSpaces.first?.parentId)
+    }
+
+    // MARK: - Move Collection
+
+    func testMoveCollectionToTopLevel() async {
+        let parent = makeCollection(id: "parent", title: "Parent")
+        let child = makeCollection(id: "child", title: "Child", parentId: "parent")
+
+        mockRepository.mockCollections = [parent, child]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.collections.count, 1) // only parent at top level
+        XCTAssertEqual(viewModel.collections.first?.childCollections.count, 1)
+
+        await viewModel.moveCollection(id: "child", toCollectionId: nil)
+
+        XCTAssertEqual(viewModel.collections.count, 2) // both at top level
+        XCTAssertNil(viewModel.allCollections.first(where: { $0.id == "child" })?.parentId)
+    }
+
+    func testMoveCollectionToAnotherParent() async {
+        let col1 = makeCollection(id: "col1", title: "Collection 1")
+        let col2 = makeCollection(id: "col2", title: "Collection 2")
+
+        mockRepository.mockCollections = [col1, col2]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.collections.count, 2)
+
+        await viewModel.moveCollection(id: "col2", toCollectionId: "col1")
+
+        XCTAssertEqual(viewModel.collections.count, 1)
+        XCTAssertEqual(viewModel.collections.first?.childCollections.count, 1)
+        XCTAssertEqual(viewModel.allCollections.first(where: { $0.id == "col2" })?.parentId, "col1")
+    }
+
+    func testMoveCollectionFailure() async {
+        let col = makeCollection(id: "col1", title: "Collection", parentId: "parent")
+        mockRepository.mockCollections = [col]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        mockRepository.shouldFail = true
+        await viewModel.moveCollection(id: "col1", toCollectionId: nil)
+
+        XCTAssertNotNil(viewModel.error)
+        // parentId should NOT have changed
+        XCTAssertEqual(viewModel.allCollections.first?.parentId, "parent")
+    }
+
+    // MARK: - Rename Space
+
+    func testRenameSpace() async {
+        let space = makeSpace(id: "s1", title: "Old Title")
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.allSpaces.first?.title, "Old Title")
+
+        await viewModel.renameSpace(id: "s1", title: "New Title")
+
+        XCTAssertEqual(viewModel.allSpaces.first?.title, "New Title")
+        XCTAssertEqual(viewModel.topLevelSpaces.first?.title, "New Title")
+    }
+
+    func testRenameSpaceFailure() async {
+        let space = makeSpace(id: "s1", title: "Original")
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        mockRepository.shouldFail = true
+        await viewModel.renameSpace(id: "s1", title: "New")
+
+        XCTAssertNotNil(viewModel.error)
+        // Title should NOT have changed
+        XCTAssertEqual(viewModel.allSpaces.first?.title, "Original")
+    }
+
+    // MARK: - Rename Collection
+
+    func testRenameCollection() async {
+        let col = makeCollection(id: "col1", title: "Old Name")
+        mockRepository.mockCollections = [col]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.collections.first?.collection.title, "Old Name")
+
+        await viewModel.renameCollection(id: "col1", title: "New Name")
+
+        XCTAssertEqual(viewModel.allCollections.first?.title, "New Name")
+        XCTAssertEqual(viewModel.collections.first?.collection.title, "New Name")
+    }
+
+    func testRenameCollectionFailure() async {
+        let col = makeCollection(id: "col1", title: "Original")
+        mockRepository.mockCollections = [col]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        mockRepository.shouldFail = true
+        await viewModel.renameCollection(id: "col1", title: "New")
+
+        XCTAssertNotNil(viewModel.error)
+        XCTAssertEqual(viewModel.allCollections.first?.title, "Original")
+    }
+
+    // MARK: - Delete Collection
+
+    func testDeleteCollectionRemovesCollectionAndChildSpaces() async {
+        let col = makeCollection(id: "col1", title: "To Delete")
+        let childSpace = makeSpace(id: "s1", title: "Child", parentId: "col1")
+        let topSpace = makeSpace(id: "s2", title: "Top Level")
+
+        mockRepository.mockCollections = [col]
+        mockRepository.mockSpaces = [childSpace, topSpace]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.allCollections.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.count, 2)
+
+        await viewModel.deleteCollection(id: "col1")
+
+        XCTAssertTrue(viewModel.allCollections.isEmpty)
+        XCTAssertEqual(viewModel.allSpaces.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.first?.id, "s2")
+        XCTAssertEqual(viewModel.topLevelSpaces.count, 1)
+    }
+
+    func testDeleteCollectionRemovesNestedCollectionsAndSpaces() async {
+        let parent = makeCollection(id: "parent", title: "Parent")
+        let child = makeCollection(id: "child", title: "Child", parentId: "parent")
+        let grandchild = makeCollection(id: "grandchild", title: "Grandchild", parentId: "child")
+        let spaceInParent = makeSpace(id: "s1", title: "In Parent", parentId: "parent")
+        let spaceInChild = makeSpace(id: "s2", title: "In Child", parentId: "child")
+        let spaceInGrandchild = makeSpace(id: "s3", title: "In Grandchild", parentId: "grandchild")
+        let topSpace = makeSpace(id: "s4", title: "Top Level")
+
+        mockRepository.mockCollections = [parent, child, grandchild]
+        mockRepository.mockSpaces = [spaceInParent, spaceInChild, spaceInGrandchild, topSpace]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+        XCTAssertEqual(viewModel.allCollections.count, 3)
+        XCTAssertEqual(viewModel.allSpaces.count, 4)
+
+        await viewModel.deleteCollection(id: "parent")
+
+        XCTAssertTrue(viewModel.allCollections.isEmpty)
+        XCTAssertEqual(viewModel.allSpaces.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.first?.id, "s4")
+    }
+
+    func testDeleteCollectionOnlyRemovesTargetBranch() async {
+        let col1 = makeCollection(id: "col1", title: "Collection 1")
+        let col2 = makeCollection(id: "col2", title: "Collection 2")
+        let spaceInCol1 = makeSpace(id: "s1", title: "In Col1", parentId: "col1")
+        let spaceInCol2 = makeSpace(id: "s2", title: "In Col2", parentId: "col2")
+
+        mockRepository.mockCollections = [col1, col2]
+        mockRepository.mockSpaces = [spaceInCol1, spaceInCol2]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        await viewModel.deleteCollection(id: "col1")
+
+        XCTAssertEqual(viewModel.allCollections.count, 1)
+        XCTAssertEqual(viewModel.allCollections.first?.id, "col2")
+        XCTAssertEqual(viewModel.allSpaces.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.first?.id, "s2")
+    }
+
+    func testDeleteCollectionFailure() async {
+        let col = makeCollection(id: "col1", title: "Collection")
+        let space = makeSpace(id: "s1", title: "Child", parentId: "col1")
+        mockRepository.mockCollections = [col]
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        mockRepository.shouldFail = true
+        await viewModel.deleteCollection(id: "col1")
+
+        XCTAssertNotNil(viewModel.error)
+        // Data should NOT have been removed
+        XCTAssertEqual(viewModel.allCollections.count, 1)
+        XCTAssertEqual(viewModel.allSpaces.count, 1)
+    }
+
+    func testDeleteEmptyCollection() async {
+        let col = makeCollection(id: "col1", title: "Empty")
+        mockRepository.mockCollections = [col]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        await viewModel.deleteCollection(id: "col1")
+
+        XCTAssertTrue(viewModel.allCollections.isEmpty)
+        XCTAssertTrue(viewModel.collections.isEmpty)
+    }
+
+    // MARK: - Nested Collection Hierarchy
+
+    func testNestedCollectionHierarchy() async {
+        let parent = makeCollection(id: "parent", title: "Parent")
+        let child = makeCollection(id: "child", title: "Child", parentId: "parent")
+
+        mockRepository.mockCollections = [parent, child]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        XCTAssertEqual(viewModel.collections.count, 1) // only parent at top
+        XCTAssertEqual(viewModel.collections.first?.childCollections.count, 1)
+        XCTAssertEqual(viewModel.collections.first?.childCollections.first?.collection.id, "child")
+    }
+
+    // MARK: - Search Filtering with New Operations
+
+    func testSearchFilteringAfterRename() async {
+        let space = makeSpace(id: "s1", title: "Unique Name")
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        await viewModel.renameSpace(id: "s1", title: "Searchable Target")
+
+        viewModel.searchQuery = "Searchable"
+        XCTAssertEqual(viewModel.filteredTopLevelSpaces.count, 1)
+
+        viewModel.searchQuery = "Unique"
+        XCTAssertTrue(viewModel.filteredTopLevelSpaces.isEmpty)
+    }
+
+    func testSearchFilteringAfterMoveToCollection() async {
+        let col = makeCollection(id: "col1", title: "My Collection")
+        let space = makeSpace(id: "s1", title: "Findable Space")
+        mockRepository.mockCollections = [col]
+        mockRepository.mockSpaces = [space]
+
+        await viewModel.loadSpaces(organizationId: "org1")
+
+        viewModel.searchQuery = "Findable"
+        XCTAssertEqual(viewModel.filteredTopLevelSpaces.count, 1)
+
+        await viewModel.moveSpace(id: "s1", toCollectionId: "col1")
+
+        // Now the space is inside a collection, not top-level
+        XCTAssertTrue(viewModel.filteredTopLevelSpaces.isEmpty)
+        XCTAssertEqual(viewModel.filteredCollections.count, 1)
+        XCTAssertEqual(viewModel.filteredCollections.first?.children.count, 1)
+    }
+
     // MARK: - Test Helpers
 
     private func makeSpace(
@@ -543,7 +844,8 @@ final class SpaceListViewModelTests: XCTestCase {
 
     private func makeCollection(
         id: String,
-        title: String
+        title: String,
+        parentId: String? = nil
     ) -> Collection {
         Collection(
             id: id,
@@ -551,7 +853,7 @@ final class SpaceListViewModelTests: XCTestCase {
             emoji: nil,
             description: nil,
             appURL: nil,
-            parentId: nil,
+            parentId: parentId,
             organizationId: "org1",
             createdAt: nil,
             updatedAt: nil
@@ -640,7 +942,26 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
         guard let space = mockSpaces.first(where: { $0.id == id }) else {
             throw MockError.notFound
         }
-        return space
+        return Space(
+            id: space.id,
+            title: title ?? space.title,
+            emoji: emoji ?? space.emoji,
+            visibility: visibility ?? space.visibility,
+            type: space.type,
+            appURL: space.appURL,
+            publishedURL: space.publishedURL,
+            parentId: parentId ?? space.parentId,
+            organizationId: space.organizationId,
+            createdAt: space.createdAt,
+            updatedAt: space.updatedAt,
+            deletedAt: space.deletedAt
+        )
+    }
+
+    func moveSpace(id: String, parentId: String?) async throws {
+        if shouldFail {
+            throw MockError.failed
+        }
     }
 
     func deleteSpace(id: String) async throws {
@@ -654,6 +975,33 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
             throw MockError.failed
         }
         return restoredSpace ?? mockSpaces.first { $0.id == id }!
+    }
+
+    func renameCollection(id: String, title: String) async throws -> Collection {
+        if shouldFail {
+            throw MockError.failed
+        }
+        guard let col = mockCollections.first(where: { $0.id == id }) else {
+            throw MockError.notFound
+        }
+        return Collection(
+            id: col.id, title: title, emoji: col.emoji,
+            description: col.description, appURL: col.appURL,
+            parentId: col.parentId, organizationId: col.organizationId,
+            createdAt: col.createdAt, updatedAt: col.updatedAt
+        )
+    }
+
+    func deleteCollection(id: String) async throws {
+        if shouldFail {
+            throw MockError.failed
+        }
+    }
+
+    func moveCollection(id: String, parentId: String?) async throws {
+        if shouldFail {
+            throw MockError.failed
+        }
     }
 
     func getCachedSpaces(organizationId: String) async -> [Space] {
