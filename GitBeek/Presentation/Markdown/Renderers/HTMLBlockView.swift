@@ -95,19 +95,16 @@ struct HTMLBlockView: View {
     private func cleanHTMLTags(from text: String) -> String {
         var result = text
 
-        // Remove <strong> tags but keep content
-        result = result.replacingOccurrences(
-            of: Self.strongPattern,
-            with: "$1",
-            options: .regularExpression
-        )
-
-        // Remove <em> tags but keep content
-        result = result.replacingOccurrences(
-            of: Self.emPattern,
-            with: "$1",
-            options: .regularExpression
-        )
+        // Remove <strong>/<em> tags but keep content (must use dotMatchesLineSeparators for multi-line)
+        for pattern in [Self.strongPattern, Self.emPattern] {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .dotMatchesLineSeparators) {
+                result = regex.stringByReplacingMatches(
+                    in: result,
+                    range: NSRange(result.startIndex..., in: result),
+                    withTemplate: "$1"
+                )
+            }
+        }
 
         // Decode HTML entities
         result = decodeHTMLEntities(result)

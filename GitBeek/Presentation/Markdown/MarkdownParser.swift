@@ -210,6 +210,11 @@ actor MarkdownParser {
             return MarkdownBlock(id: id, content: .heading(level: heading.level, text: extractPlainText(from: heading)))
 
         case let paragraph as Paragraph:
+            // If paragraph contains only a single image, promote to block-level image
+            let inlines = Array(paragraph.inlineChildren)
+            if inlines.count == 1, let image = inlines.first as? Markdown.Image {
+                return MarkdownBlock(id: id, content: .image(source: image.source ?? "", alt: image.plainText))
+            }
             return MarkdownBlock(id: id, content: .paragraph(text: parseInlineContent(paragraph.inlineChildren)))
 
         case let codeBlock as CodeBlock:
