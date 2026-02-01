@@ -285,6 +285,8 @@ struct GitBeekApp: App {
 
     // MARK: - Body
 
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -292,6 +294,7 @@ struct GitBeekApp: App {
                 .environment(container.profileViewModel)
                 .environment(container.searchViewModel)
                 .environment(container.appRouter)
+                .preferredColorScheme(appTheme.colorScheme)
         }
     }
 }

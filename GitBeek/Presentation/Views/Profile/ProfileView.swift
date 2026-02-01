@@ -249,15 +249,22 @@ struct OrganizationPickerView: View {
     }
 }
 
-// MARK: - Settings View (Placeholder)
+// MARK: - Settings View
 
 struct SettingsView: View {
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
+
     var body: some View {
         List {
             Section("Appearance") {
-                // Theme is automatic in iOS 26
-                Label("Theme follows system", systemImage: "circle.lefthalf.filled")
-                    .foregroundStyle(.secondary)
+                Picker("Theme", selection: $appTheme) {
+                    ForEach(AppTheme.allCases) { theme in
+                        Label(theme.displayName, systemImage: theme.icon)
+                            .tag(theme)
+                    }
+                }
+                .pickerStyle(.inline)
+                .labeledContentStyle(.automatic)
             }
 
             Section("About") {

@@ -431,7 +431,7 @@ GitBookiOS/
 
 #### 8.1 App Settings
 - [ ] SettingsView (NavigationStack + Form with Liquid Glass)
-- [ ] 主题选择 (自动跟随系统 - iOS 26 默认)
+- [x] 主题选择 (System / Light / Dark 三选一)
 - [ ] 编辑器偏好
   - [ ] 默认编辑模式
   - [ ] 自动保存间隔

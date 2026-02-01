@@ -307,6 +307,7 @@ final class SearchViewModel {
         guard let orgId = organizationId else { return }
         do {
             availableSpaces = try await spaceRepository.getSpaces(organizationId: orgId)
+                .filter { $0.deletedAt == nil }
         } catch {
             // Silently fail
         }
