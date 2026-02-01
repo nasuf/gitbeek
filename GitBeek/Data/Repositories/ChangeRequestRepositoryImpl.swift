@@ -56,7 +56,10 @@ final class ChangeRequestRepositoryImpl: ChangeRequestRepository {
     }
 
     func mergeChangeRequest(spaceId: String, changeRequestId: String) async throws -> ChangeRequest {
-        let dto = try await apiService.mergeChangeRequest(spaceId: spaceId, changeRequestId: changeRequestId)
+        // Merge returns a simple result, not a full ChangeRequestDTO
+        _ = try await apiService.mergeChangeRequest(spaceId: spaceId, changeRequestId: changeRequestId)
+        // Re-fetch the CR to get the updated state
+        let dto = try await apiService.getChangeRequest(spaceId: spaceId, changeRequestId: changeRequestId)
         return ChangeRequest.from(dto: dto)
     }
 
@@ -113,5 +116,20 @@ final class ChangeRequestRepositoryImpl: ChangeRequestRepository {
         } catch {
             return nil
         }
+    }
+
+    func listReviews(spaceId: String, changeRequestId: String) async throws -> [ChangeRequestReview] {
+        let dto = try await apiService.listChangeRequestReviews(spaceId: spaceId, changeRequestId: changeRequestId)
+        return dto.items.map { ChangeRequestReview.from(dto: $0) }
+    }
+
+    func submitReview(spaceId: String, changeRequestId: String, status: ReviewStatus) async throws -> ChangeRequestReview {
+        let dto = try await apiService.submitChangeRequestReview(spaceId: spaceId, changeRequestId: changeRequestId, status: status)
+        return ChangeRequestReview.from(dto: dto)
+    }
+
+    func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference] {
+        let dto = try await apiService.listRequestedReviewers(spaceId: spaceId, changeRequestId: changeRequestId)
+        return dto.items.compactMap { $0.user.map { UserReference.from(dto: $0) } }
     }
 }

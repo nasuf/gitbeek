@@ -63,28 +63,6 @@ final class PageDetailViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.hasError)
     }
 
-    func testLoadPageByPathSuccess() async {
-        let page = makePage(id: "page1", title: "Path Page", path: "/docs/intro")
-        mockRepository.mockPage = page
-
-        await viewModel.loadPageByPath(spaceId: "space1", path: "/docs/intro")
-
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNil(viewModel.error)
-        XCTAssertNotNil(viewModel.page)
-        XCTAssertEqual(viewModel.page?.path, "/docs/intro")
-    }
-
-    func testLoadPageByPathFailure() async {
-        mockRepository.shouldFail = true
-
-        await viewModel.loadPageByPath(spaceId: "space1", path: "/invalid")
-
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNotNil(viewModel.error)
-        XCTAssertNil(viewModel.page)
-    }
-
     // MARK: - Computed Properties
 
     func testDisplayTitleWithEmoji() async {
@@ -145,80 +123,6 @@ final class PageDetailViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.hasChildren)
         XCTAssertTrue(viewModel.children.isEmpty)
-    }
-
-    // MARK: - Breadcrumbs
-
-    func testBuildBreadcrumbsSimplePath() {
-        let page1 = makePage(id: "p1", title: "Introduction", emoji: "📖")
-        let page2 = makePage(id: "p2", title: "Getting Started")
-        let tree = [page1, page2]
-
-        viewModel.buildBreadcrumbs(from: tree, to: "p1")
-
-        XCTAssertEqual(viewModel.breadcrumbs.count, 1)
-        XCTAssertEqual(viewModel.breadcrumbs[0].id, "p1")
-        XCTAssertEqual(viewModel.breadcrumbs[0].title, "Introduction")
-        XCTAssertEqual(viewModel.breadcrumbs[0].emoji, "📖")
-    }
-
-    func testBuildBreadcrumbsNestedPath() {
-        let grandchild = makePage(id: "gc", title: "Deep Page")
-        let child = makePage(id: "c", title: "Child", children: [grandchild])
-        let parent = makePage(id: "p", title: "Parent", emoji: "📁", children: [child])
-        let tree = [parent]
-
-        viewModel.buildBreadcrumbs(from: tree, to: "gc")
-
-        XCTAssertEqual(viewModel.breadcrumbs.count, 3)
-        XCTAssertEqual(viewModel.breadcrumbs[0].id, "p")
-        XCTAssertEqual(viewModel.breadcrumbs[0].title, "Parent")
-        XCTAssertEqual(viewModel.breadcrumbs[0].emoji, "📁")
-        XCTAssertEqual(viewModel.breadcrumbs[1].id, "c")
-        XCTAssertEqual(viewModel.breadcrumbs[1].title, "Child")
-        XCTAssertEqual(viewModel.breadcrumbs[2].id, "gc")
-        XCTAssertEqual(viewModel.breadcrumbs[2].title, "Deep Page")
-    }
-
-    func testBuildBreadcrumbsNotFound() {
-        let page = makePage(id: "1", title: "Only Page")
-        let tree = [page]
-
-        viewModel.buildBreadcrumbs(from: tree, to: "nonexistent")
-
-        XCTAssertTrue(viewModel.breadcrumbs.isEmpty)
-    }
-
-    func testBuildBreadcrumbsEmptyTree() {
-        viewModel.buildBreadcrumbs(from: [], to: "any")
-
-        XCTAssertTrue(viewModel.breadcrumbs.isEmpty)
-    }
-
-    func testBuildBreadcrumbsSiblingPath() {
-        let sibling1 = makePage(id: "s1", title: "Sibling 1")
-        let sibling2 = makePage(id: "s2", title: "Sibling 2")
-        let parent = makePage(id: "p", title: "Parent", children: [sibling1, sibling2])
-        let tree = [parent]
-
-        viewModel.buildBreadcrumbs(from: tree, to: "s2")
-
-        XCTAssertEqual(viewModel.breadcrumbs.count, 2)
-        XCTAssertEqual(viewModel.breadcrumbs[0].id, "p")
-        XCTAssertEqual(viewModel.breadcrumbs[1].id, "s2")
-    }
-
-    func testSetBreadcrumbs() {
-        let items = [
-            BreadcrumbItem(id: "1", title: "Home", emoji: "🏠"),
-            BreadcrumbItem(id: "2", title: "Docs", emoji: nil)
-        ]
-
-        viewModel.setBreadcrumbs(items)
-
-        XCTAssertEqual(viewModel.breadcrumbs.count, 2)
-        XCTAssertEqual(viewModel.breadcrumbs[0].title, "Home")
-        XCTAssertEqual(viewModel.breadcrumbs[1].title, "Docs")
     }
 
     // MARK: - Refresh

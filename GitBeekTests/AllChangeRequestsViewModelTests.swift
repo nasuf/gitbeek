@@ -345,8 +345,10 @@ final class AllChangeRequestsViewModelTests: XCTestCase {
 
     // MARK: - Error Tests
 
-    func testClearError() {
-        viewModel.error = NSError(domain: "test", code: 1)
+    func testClearError() async {
+        // Trigger an error by loading with a failing repository
+        mockOrganizationRepository.shouldThrowError = true
+        await viewModel.load()
         XCTAssertTrue(viewModel.hasError, "Should have error")
 
         viewModel.clearError()
@@ -360,9 +362,6 @@ final class AllChangeRequestsViewModelTests: XCTestCase {
         Organization(
             id: id,
             title: title,
-            emoji: nil,
-            visibility: .private,
-            urls: Organization.URLs(location: nil, app: nil),
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -374,10 +373,14 @@ final class AllChangeRequestsViewModelTests: XCTestCase {
             title: title,
             emoji: nil,
             visibility: .private,
+            type: nil,
+            appURL: nil,
+            publishedURL: nil,
             parentId: parentId,
-            urls: Space.URLs(location: nil, app: nil),
+            organizationId: "org1",
             createdAt: Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            deletedAt: nil
         )
     }
 
@@ -386,8 +389,10 @@ final class AllChangeRequestsViewModelTests: XCTestCase {
             id: id,
             title: title,
             emoji: nil,
-            visibility: .private,
-            urls: Collection.URLs(location: nil, app: nil),
+            description: nil,
+            appURL: nil,
+            parentId: nil,
+            organizationId: "org1",
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -408,16 +413,17 @@ final class AllChangeRequestsViewModelTests: XCTestCase {
             updatedAt: updatedAt,
             mergedAt: nil,
             closedAt: nil,
+            revision: nil,
+            revisionInitial: nil,
             createdBy: nil,
-            urls: nil,
-            changes: []
+            urls: nil
         )
     }
 }
 
 // MARK: - Mock Repositories
 
-class MockChangeRequestRepository: ChangeRequestRepository {
+private final class MockChangeRequestRepository: ChangeRequestRepository, @unchecked Sendable {
     var mockChangeRequests: [String: [ChangeRequest]] = [:]
     var shouldThrowError = false
     var listCallCount = 0
@@ -468,9 +474,21 @@ class MockChangeRequestRepository: ChangeRequestRepository {
     func getPageContentAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> String? {
         return nil
     }
+
+    func listReviews(spaceId: String, changeRequestId: String) async throws -> [ChangeRequestReview] {
+        return []
+    }
+
+    func submitReview(spaceId: String, changeRequestId: String, status: ReviewStatus) async throws -> ChangeRequestReview {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference] {
+        return []
+    }
 }
 
-class MockOrganizationRepository: OrganizationRepository {
+private final class MockOrganizationRepository: OrganizationRepository, @unchecked Sendable {
     var mockOrganizations: [Organization] = []
     var shouldThrowError = false
 
@@ -481,11 +499,53 @@ class MockOrganizationRepository: OrganizationRepository {
         return mockOrganizations
     }
 
-    func getOrganization(orgId: String) async throws -> Organization {
+    func getOrganization(id: String) async throws -> Organization {
         throw NSError(domain: "test", code: 1)
     }
 
-    func getMembers(orgId: String) async throws -> [OrganizationMember] {
+    func getCachedOrganizations() async -> [Organization] {
+        return mockOrganizations
+    }
+
+    func clearCache() async {}
+}
+
+private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
+    var mockSpaces: [Space] = []
+    var mockCollections: [Collection] = []
+
+    func getCollections(organizationId: String) async throws -> [Collection] {
+        return mockCollections
+    }
+
+    func getSpaces(organizationId: String) async throws -> [Space] {
+        return mockSpaces
+    }
+
+    func getSpace(id: String) async throws -> Space {
+        guard let space = mockSpaces.first(where: { $0.id == id }) else {
+            throw NSError(domain: "test", code: 1)
+        }
+        return space
+    }
+
+    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, type: Space.SpaceType?, parentId: String?) async throws -> Space {
         throw NSError(domain: "test", code: 1)
     }
+
+    func updateSpace(id: String, title: String?, emoji: String?, visibility: Space.Visibility?, parentId: String?) async throws -> Space {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func deleteSpace(id: String) async throws {}
+
+    func restoreSpace(id: String) async throws -> Space {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func getCachedSpaces(organizationId: String) async -> [Space] {
+        return mockSpaces
+    }
+
+    func clearCache() async {}
 }

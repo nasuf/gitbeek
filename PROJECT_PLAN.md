@@ -356,8 +356,8 @@ GitBookiOS/
 
 #### 5.2 Review Flow
 - [ ] 请求 review
-- [ ] 批准变更
-- [ ] 请求修改
+- [x] 批准变更
+- [x] 请求修改
 - [ ] 针对具体内容评论
 
 ---
@@ -597,7 +597,7 @@ Button("Action") { }
 ### V1.0
 - [ ] Phase 4: Full content editing
 - [x] Phase 5.1: Change Request management (completed)
-- [ ] Phase 5.2: Review Flow
+- [x] Phase 5.2: Review Flow (approve/request changes)
 - [ ] Phase 6: Offline content viewing
 - [x] Phase 7: Search & Discovery (completed)
 

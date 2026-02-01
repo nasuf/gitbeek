@@ -64,6 +64,12 @@ struct UpdateChangeRequestDTO: Codable, Sendable {
     }
 }
 
+/// Merge change request response
+struct MergeChangeRequestResponseDTO: Codable, Sendable {
+    let result: String
+    let revision: String?
+}
+
 /// Change request diff/changes response
 /// GitBook API returns an array of changes directly
 struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
@@ -74,7 +80,14 @@ struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
     init(from decoder: Decoder) throws {
         // Try to decode as an object with changes field first (actual API format)
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-            self.changes = (try? container.decode([ChangeDTO].self, forKey: .changes)) ?? []
+            do {
+                self.changes = try container.decode([ChangeDTO].self, forKey: .changes)
+            } catch {
+                #if DEBUG
+                print("⚠️ [ChangeRequestDiffDTO] Failed to decode changes array: \(error)")
+                #endif
+                self.changes = []
+            }
             self.more = try? container.decodeIfPresent(Int.self, forKey: .more)
         } else if let changesArray = try? [ChangeDTO](from: decoder) {
             // Fallback: try to decode as an array directly
@@ -131,6 +144,43 @@ struct ChangeRequestDiffDTO: Codable, Equatable, Sendable {
             }
         }
     }
+}
+
+// MARK: - Change Request Review DTOs
+
+/// Review status for a change request
+enum ReviewStatus: String, Codable, Sendable {
+    case approved
+    case changesRequested = "changes-requested"
+}
+
+/// A review on a change request
+struct ChangeRequestReviewDTO: Codable, Equatable, Sendable, Identifiable {
+    let id: String
+    let reviewer: UserReferenceDTO?
+    let status: ReviewStatus
+    let outdated: Bool?
+    let createdAt: Date?
+}
+
+/// List of reviews response
+struct ChangeRequestReviewsListDTO: Codable, Sendable {
+    let items: [ChangeRequestReviewDTO]
+}
+
+/// Request body for submitting a review
+struct SubmitReviewRequestDTO: Codable, Sendable {
+    let status: ReviewStatus
+}
+
+/// A requested reviewer
+struct RequestedReviewerDTO: Codable, Equatable, Sendable {
+    let user: UserReferenceDTO?
+}
+
+/// List of requested reviewers response
+struct RequestedReviewersListDTO: Codable, Sendable {
+    let items: [RequestedReviewerDTO]
 }
 
 /// Search result

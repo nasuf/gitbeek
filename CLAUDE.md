@@ -40,3 +40,7 @@ xcodebuild test -project GitBeek.xcodeproj -scheme GitBeek -destination 'platfor
 ## SPM Dependencies
 
 Alamofire (networking), SDWebImageSwiftUI (images), swift-markdown (parsing), Splash (syntax highlighting), swift-dependencies (DI framework).
+
+## Communication
+
+- 请使用中文回复用户（Always respond in Chinese）.

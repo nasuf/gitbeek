@@ -78,4 +78,13 @@ protocol ChangeRequestRepository: Sendable {
 
     /// Get page markdown content at a specific revision
     func getPageContentAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> String?
+
+    /// List reviews for a change request
+    func listReviews(spaceId: String, changeRequestId: String) async throws -> [ChangeRequestReview]
+
+    /// Submit a review for a change request
+    func submitReview(spaceId: String, changeRequestId: String, status: ReviewStatus) async throws -> ChangeRequestReview
+
+    /// List requested reviewers for a change request
+    func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference]
 }

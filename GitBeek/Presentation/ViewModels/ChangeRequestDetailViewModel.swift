@@ -52,6 +52,22 @@ final class ChangeRequestDetailViewModel {
     /// Did archive successfully
     private(set) var didArchive = false
 
+    /// Reviews
+    private(set) var reviews: [ChangeRequestReview] = []
+
+    /// Requested reviewers
+    private(set) var requestedReviewers: [UserReference] = []
+
+    /// Loading reviews
+    private(set) var isLoadingReviews = false
+
+    /// Submitting review
+    private(set) var isSubmittingReview = false
+
+    /// Confirmation dialogs
+    var showApproveConfirmation = false
+    var showRequestChangesConfirmation = false
+
     // MARK: - Dependencies
 
     private let changeRequestRepository: ChangeRequestRepository
@@ -125,8 +141,6 @@ final class ChangeRequestDetailViewModel {
         error = nil
 
         do {
-            print("📋 [Diff] Loading diff for spaceId=\(spaceId) crId=\(changeRequestId)")
-            print("📋 [Diff] CR revision=\(changeRequest?.revision ?? "nil") revisionInitial=\(changeRequest?.revisionInitial ?? "nil")")
             var loadedDiff = try await changeRequestRepository.getChangeRequestDiff(
                 spaceId: spaceId,
                 changeRequestId: changeRequestId
@@ -139,7 +153,7 @@ final class ChangeRequestDetailViewModel {
             // Load content for page changes in parallel
             await withTaskGroup(of: (Int, String?, String?).self) { group in
                 for (index, change) in loadedDiff.changes.enumerated() {
-                    guard !change.isFile && !change.contentLoaded else { continue }
+                    guard !change.isFile && !change.contentLoaded && !change.isMoveOnly else { continue }
 
                     group.addTask { [spaceId, changeRequestRepository] in
                         var before: String? = nil
@@ -174,10 +188,6 @@ final class ChangeRequestDetailViewModel {
                 }
             }
 
-            print("📋 [Diff] Loaded \(loadedDiff.changes.count) changes")
-            for (i, c) in loadedDiff.changes.enumerated() {
-                print("  [\(i)] type=\(c.type) title=\(c.title) path=\(c.path) isFile=\(c.isFile) contentLoaded=\(c.contentLoaded)")
-            }
             diff = loadedDiff
         } catch {
             self.error = error
@@ -236,6 +246,59 @@ final class ChangeRequestDetailViewModel {
         }
 
         isUpdatingStatus = false
+    }
+
+    /// Load reviews and requested reviewers
+    func loadReviews() async {
+        isLoadingReviews = true
+
+        do {
+            async let reviewsResult = changeRequestRepository.listReviews(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId
+            )
+            async let reviewersResult = changeRequestRepository.listRequestedReviewers(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId
+            )
+
+            reviews = try await reviewsResult
+            requestedReviewers = try await reviewersResult
+        } catch {
+            print("Error loading reviews: \(error)")
+        }
+
+        isLoadingReviews = false
+    }
+
+    /// Approve the change request
+    func approve() async {
+        await submitReview(status: .approved)
+    }
+
+    /// Request changes on the change request
+    func requestChanges() async {
+        await submitReview(status: .changesRequested)
+    }
+
+    /// Submit a review with the given status
+    private func submitReview(status: ReviewStatus) async {
+        isSubmittingReview = true
+        error = nil
+
+        do {
+            let review = try await changeRequestRepository.submitReview(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                status: status
+            )
+            reviews.append(review)
+        } catch {
+            self.error = error
+            print("Error submitting review: \(error)")
+        }
+
+        isSubmittingReview = false
     }
 
     /// Clear error

@@ -231,13 +231,16 @@ actor GitBookAPIService {
     }
 
     /// Merge change request
-    func mergeChangeRequest(spaceId: String, changeRequestId: String) async throws -> ChangeRequestDTO {
+    func mergeChangeRequest(spaceId: String, changeRequestId: String) async throws -> MergeChangeRequestResponseDTO {
         try await client.request(GitBookEndpoint.mergeChangeRequest(spaceId: spaceId, changeRequestId: changeRequestId))
     }
 
     /// Get change request diff
+    /// Uses a plain JSONDecoder because ChangeRequestDiffDTO has a custom init(from:)
+    /// that conflicts with APIClient's custom dateDecodingStrategy.
     func getChangeRequestDiff(spaceId: String, changeRequestId: String) async throws -> ChangeRequestDiffDTO {
-        try await client.request(GitBookEndpoint.getChangeRequestDiff(spaceId: spaceId, changeRequestId: changeRequestId))
+        let data = try await client.requestData(GitBookEndpoint.getChangeRequestDiff(spaceId: spaceId, changeRequestId: changeRequestId))
+        return try JSONDecoder().decode(ChangeRequestDiffDTO.self, from: data)
     }
 
     /// Get page content in change request context (the "after" version)
@@ -247,6 +250,24 @@ actor GitBookAPIService {
 
     func getPageAtRevision(spaceId: String, revisionId: String, pageId: String) async throws -> PageContentDTO {
         try await client.request(GitBookEndpoint.getPageAtRevision(spaceId: spaceId, revisionId: revisionId, pageId: pageId))
+    }
+
+    // MARK: - Change Request Reviews
+
+    /// List reviews for a change request
+    func listChangeRequestReviews(spaceId: String, changeRequestId: String) async throws -> ChangeRequestReviewsListDTO {
+        try await client.request(GitBookEndpoint.listChangeRequestReviews(spaceId: spaceId, changeRequestId: changeRequestId))
+    }
+
+    /// Submit a review for a change request
+    func submitChangeRequestReview(spaceId: String, changeRequestId: String, status: ReviewStatus) async throws -> ChangeRequestReviewDTO {
+        let request = SubmitReviewRequestDTO(status: status)
+        return try await client.request(GitBookEndpoint.submitChangeRequestReview(spaceId: spaceId, changeRequestId: changeRequestId, request: request))
+    }
+
+    /// List requested reviewers for a change request
+    func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> RequestedReviewersListDTO {
+        try await client.request(GitBookEndpoint.listRequestedReviewers(spaceId: spaceId, changeRequestId: changeRequestId))
     }
 
     // MARK: - Search

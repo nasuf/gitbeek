@@ -13,6 +13,7 @@ struct ChangeRequestDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(AuthViewModel.self) private var authViewModel
     @State private var viewModel: ChangeRequestDetailViewModel
 
     // MARK: - Initialization
@@ -55,6 +56,18 @@ struct ChangeRequestDetailView: View {
                                 .padding(.horizontal)
                         }
 
+                        // Reviews section
+                        reviewsSection
+                            .padding(.horizontal)
+
+                        // Review actions (only for non-authors)
+                        if changeRequest.status == .open,
+                           let currentUserId = authViewModel.currentUser?.id,
+                           changeRequest.createdBy?.id != currentUserId {
+                            reviewActionsSection
+                                .padding(.horizontal)
+                        }
+
                         // Diff section
                         diffSection
                             .padding(.horizontal)
@@ -83,6 +96,7 @@ struct ChangeRequestDetailView: View {
         .task {
             await viewModel.load()
             await viewModel.loadDiff()
+            await viewModel.loadReviews()
         }
         .onChange(of: viewModel.didMerge) { _, didMerge in
             if didMerge {
@@ -117,6 +131,26 @@ struct ChangeRequestDetailView: View {
             }
         } message: {
             Text("This will archive the change request. You can reopen it later if needed.")
+        }
+        .alert("Approve Change Request?", isPresented: $viewModel.showApproveConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Approve") {
+                Task {
+                    await viewModel.approve()
+                }
+            }
+        } message: {
+            Text("This will approve the change request.")
+        }
+        .alert("Request Changes?", isPresented: $viewModel.showRequestChangesConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Request Changes", role: .destructive) {
+                Task {
+                    await viewModel.requestChanges()
+                }
+            }
+        } message: {
+            Text("This will request changes on the change request.")
         }
         .alert("Error", isPresented: .constant(viewModel.hasError)) {
             Button("OK") {
@@ -253,6 +287,157 @@ struct ChangeRequestDetailView: View {
                 }
                 .disabled(viewModel.isMerging || viewModel.isUpdatingStatus)
             }
+        }
+    }
+
+    // MARK: - Reviews Section
+
+    @ViewBuilder
+    private var reviewsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Label("Reviews", systemImage: "person.2")
+                    .font(AppTypography.headlineMedium)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                if viewModel.isLoadingReviews {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+
+            if !viewModel.reviews.isEmpty || !viewModel.requestedReviewers.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    // Show submitted reviews
+                    ForEach(viewModel.reviews) { review in
+                        reviewRow(review: review)
+                    }
+
+                    // Show pending requested reviewers (not yet reviewed)
+                    let reviewedUserIds = Set(viewModel.reviews.compactMap { $0.reviewer?.id })
+                    ForEach(viewModel.requestedReviewers.filter { !reviewedUserIds.contains($0.id) }, id: \.id) { reviewer in
+                        pendingReviewerRow(reviewer: reviewer)
+                    }
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    .ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+                )
+            } else if !viewModel.isLoadingReviews {
+                Text("No reviews yet")
+                    .font(AppTypography.bodySmall)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func reviewRow(review: ChangeRequestReview) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: review.status.icon)
+                .foregroundStyle(review.status == .approved ? .green : .orange)
+                .font(.body)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(review.reviewer?.displayName ?? "Unknown")
+                    .font(AppTypography.bodyMedium)
+                    .fontWeight(.medium)
+
+                HStack(spacing: AppSpacing.xs) {
+                    Text(review.status.displayName)
+                        .font(AppTypography.captionSmall)
+                        .foregroundStyle(review.status == .approved ? .green : .orange)
+
+                    if review.outdated {
+                        Text("(outdated)")
+                            .font(AppTypography.captionSmall)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Spacer()
+
+            if let createdAt = review.createdAt {
+                Text(formatDate(createdAt))
+                    .font(AppTypography.captionSmall)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func pendingReviewerRow(reviewer: UserReference) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: "clock")
+                .foregroundStyle(.secondary)
+                .font(.body)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(reviewer.displayName)
+                    .font(AppTypography.bodyMedium)
+                    .fontWeight(.medium)
+
+                Text("Pending")
+                    .font(AppTypography.captionSmall)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Review Actions Section
+
+    @ViewBuilder
+    private var reviewActionsSection: some View {
+        VStack(spacing: AppSpacing.sm) {
+            Button {
+                viewModel.showApproveConfirmation = true
+            } label: {
+                HStack {
+                    if viewModel.isSubmittingReview {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "checkmark.circle")
+                    }
+
+                    Text("Approve")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.green)
+                .foregroundStyle(.white)
+                .cornerRadius(AppSpacing.cornerRadiusMedium)
+            }
+            .disabled(viewModel.isSubmittingReview)
+
+            Button {
+                viewModel.showRequestChangesConfirmation = true
+            } label: {
+                HStack {
+                    if viewModel.isSubmittingReview {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+
+                    Text("Request Changes")
+                        .fontWeight(.medium)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(.systemGray5))
+                .foregroundStyle(.orange)
+                .cornerRadius(AppSpacing.cornerRadiusMedium)
+            }
+            .disabled(viewModel.isSubmittingReview)
         }
     }
 
@@ -490,8 +675,8 @@ private struct ChangeRow: View {
                             .padding(.horizontal, AppSpacing.md)
                     }
 
-                    // Content diff
-                    if !change.isFile {
+                    // Content diff (skip for move-only changes)
+                    if !change.isFile && !change.isMoveOnly {
                         contentDiffSection
                             .padding(.horizontal, AppSpacing.md)
                     }

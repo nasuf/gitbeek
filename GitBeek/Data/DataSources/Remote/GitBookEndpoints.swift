@@ -107,6 +107,15 @@ enum GitBookEndpoint: APIEndpoint {
     /// Get page content at a specific revision (for before version of merged CRs)
     case getPageAtRevision(spaceId: String, revisionId: String, pageId: String)
 
+    /// List reviews for a change request
+    case listChangeRequestReviews(spaceId: String, changeRequestId: String)
+
+    /// Submit a review for a change request
+    case submitChangeRequestReview(spaceId: String, changeRequestId: String, request: SubmitReviewRequestDTO)
+
+    /// List requested reviewers for a change request
+    case listRequestedReviewers(spaceId: String, changeRequestId: String)
+
     // MARK: - Search
 
     /// Search in organization
@@ -186,6 +195,12 @@ enum GitBookEndpoint: APIEndpoint {
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/content/page/\(pageId)"
         case .getPageAtRevision(let spaceId, let revisionId, let pageId):
             return "/spaces/\(spaceId)/revisions/\(revisionId)/page/\(pageId)"
+        case .listChangeRequestReviews(let spaceId, let changeRequestId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/reviews"
+        case .submitChangeRequestReview(let spaceId, let changeRequestId, _):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/reviews"
+        case .listRequestedReviewers(let spaceId, let changeRequestId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/requested-reviewers"
 
         // Search
         case .searchOrganization(let orgId, _, _):
@@ -199,7 +214,8 @@ enum GitBookEndpoint: APIEndpoint {
         switch self {
         case .exchangeToken, .refreshToken,
              .createSpace, .createPage, .createChangeRequest,
-             .mergeChangeRequest, .restoreSpace:
+             .mergeChangeRequest, .restoreSpace,
+             .submitChangeRequestReview:
             return .post
         case .updateSpace, .updatePage, .updateChangeRequest:
             return .patch
@@ -262,6 +278,8 @@ enum GitBookEndpoint: APIEndpoint {
         case .createChangeRequest(_, let request):
             return request
         case .updateChangeRequest(_, _, let request):
+            return request
+        case .submitChangeRequestReview(_, _, let request):
             return request
         default:
             return nil

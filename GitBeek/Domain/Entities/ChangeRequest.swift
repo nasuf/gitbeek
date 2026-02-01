@@ -86,6 +86,45 @@ struct ChangeRequest: Identifiable, Equatable, Hashable, Sendable {
     }
 }
 
+// MARK: - ReviewStatus Extensions
+
+extension ReviewStatus {
+    var displayName: String {
+        switch self {
+        case .approved: return "Approved"
+        case .changesRequested: return "Changes Requested"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .approved: return "checkmark.circle.fill"
+        case .changesRequested: return "exclamationmark.triangle.fill"
+        }
+    }
+}
+
+/// Review on a change request
+struct ChangeRequestReview: Identifiable, Equatable, Sendable {
+    let id: String
+    let reviewer: UserReference?
+    let status: ReviewStatus
+    let outdated: Bool
+    let createdAt: Date?
+}
+
+extension ChangeRequestReview {
+    static func from(dto: ChangeRequestReviewDTO) -> ChangeRequestReview {
+        ChangeRequestReview(
+            id: dto.id,
+            reviewer: dto.reviewer.map { UserReference.from(dto: $0) },
+            status: dto.status,
+            outdated: dto.outdated ?? false,
+            createdAt: dto.createdAt
+        )
+    }
+}
+
 /// Change type
 enum ChangeType: String, Codable, Sendable {
     case added
@@ -156,9 +195,15 @@ struct Change: Identifiable, Equatable, Hashable, Sendable {
         return title
     }
 
-    /// Whether this is a move/rename without content change
+    /// Whether this is a title/move change without actual content change
     var isMoveOnly: Bool {
-        type == .modified && !hasDocumentChange && titleChange != nil
+        guard type == .modified, titleChange != nil else { return false }
+        // If content has been loaded and is identical, it's a title-only change
+        if contentLoaded {
+            return contentBefore == contentAfter
+        }
+        // Before content is loaded, use heuristic: no document change means move-only
+        return !hasDocumentChange
     }
 }
 
