@@ -274,7 +274,7 @@ GitBookiOS/
 - [x] SpaceListView (Grid/List 切换)
 - [x] SpaceDetailView (Liquid Glass toolbar)
 - [x] SpaceSettingsView
-- [x] 创建新空间 (GlassSheet)
+- [x] 创建新空间 (GlassSheet + Emoji Picker)
 - [x] 删除空间 (confirmation dialog)
 - [x] 空间搜索/过滤
 - [x] Collection 层级视图

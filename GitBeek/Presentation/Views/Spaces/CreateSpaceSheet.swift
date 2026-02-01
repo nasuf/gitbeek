@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ElegantEmojiPicker
 
 /// Sheet view for creating a new space or collection
 struct CreateSpaceSheet: View {
@@ -21,11 +22,12 @@ struct CreateSpaceSheet: View {
     // MARK: - State
 
     @State private var title = ""
-    @State private var emoji = ""
     @State private var spaceType: SpaceTypeOption = .space
     @State private var visibility: Space.Visibility = .private
     @State private var parentCollection: Collection?
     @State private var isCreating = false
+    @State private var isEmojiPickerPresented = false
+    @State private var selectedEmoji: Emoji?
     @State private var error: Error?
 
     // MARK: - Types
@@ -143,13 +145,27 @@ struct CreateSpaceSheet: View {
             TextField("Title", text: $title)
                 .textContentType(.name)
 
-            HStack {
-                Text("Emoji")
-                Spacer()
-                TextField("Optional", text: $emoji)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 60)
+            Button {
+                isEmojiPickerPresented = true
+            } label: {
+                HStack {
+                    Text("Emoji")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    if let emoji = selectedEmoji?.emoji {
+                        Text(emoji)
+                            .font(.title2)
+                    } else {
+                        Text("Optional")
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             }
+            .emojiPicker(
+                isPresented: $isEmojiPickerPresented,
+                selectedEmoji: $selectedEmoji,
+                configuration: ElegantConfiguration(showReset: true)
+            )
         }
     }
 
@@ -240,7 +256,6 @@ struct CreateSpaceSheet: View {
         Task {
             do {
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                let trimmedEmoji = emoji.trimmingCharacters(in: .whitespacesAndNewlines)
 
                 if spaceType == .collection {
                     try await viewModel.createCollection(
@@ -250,7 +265,7 @@ struct CreateSpaceSheet: View {
                 } else {
                     try await viewModel.createSpace(
                         title: trimmedTitle,
-                        emoji: trimmedEmoji.isEmpty ? nil : trimmedEmoji,
+                        emoji: selectedEmoji?.emoji,
                         visibility: visibility,
                         parentId: parentCollection?.id
                     )

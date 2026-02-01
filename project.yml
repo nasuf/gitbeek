@@ -49,9 +49,15 @@ packages:
   Splash:
     url: https://github.com/JohnSundell/Splash
     from: "0.16.0"
+  Highlightr:
+    url: https://github.com/raspu/Highlightr
+    from: "2.1.0"
   swift-dependencies:
     url: https://github.com/pointfreeco/swift-dependencies
     from: "1.0.0"
+  ElegantEmojiPicker:
+    url: https://github.com/Finalet/Elegant-Emoji-Picker
+    branch: main
 
 targets:
   GitBeek:
@@ -71,8 +77,10 @@ targets:
       - package: swift-markdown
         product: Markdown
       - package: Splash
+      - package: Highlightr
       - package: swift-dependencies
         product: Dependencies
+      - package: ElegantEmojiPicker
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.gitbeek.app

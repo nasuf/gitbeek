@@ -264,7 +264,6 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.inline)
-                .labeledContentStyle(.automatic)
             }
 
             Section("About") {
