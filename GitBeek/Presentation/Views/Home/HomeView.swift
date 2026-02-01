@@ -155,11 +155,10 @@ struct HomeView: View {
                         #endif
                         return
                     }
-                    spaceListViewModel = SpaceListViewModel(
-                        spaceRepository: DependencyContainer.shared.spaceRepository
-                    )
-                    Task {
-                        await spaceListViewModel?.loadSpaces(organizationId: orgId)
+                    if spaceListViewModel == nil {
+                        spaceListViewModel = SpaceListViewModel(
+                            spaceRepository: DependencyContainer.shared.spaceRepository
+                        )
                     }
                     showCreateSpace = true
                 }

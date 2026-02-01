@@ -160,6 +160,12 @@ struct SpaceListView: View {
                             Task {
                                 await viewModel.deleteSpace(id: space.id)
                             }
+                        },
+                        isExpandedCheck: { id in
+                            viewModel.isExpanded(id) || viewModel.isSearching
+                        },
+                        onToggleById: { id in
+                            viewModel.toggleCollection(id: id)
                         }
                     )
                 }

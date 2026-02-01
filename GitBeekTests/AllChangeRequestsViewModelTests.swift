@@ -529,7 +529,11 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
         return space
     }
 
-    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, type: Space.SpaceType?, parentId: String?) async throws -> Space {
+    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, parentId: String?) async throws -> Space {
+        throw NSError(domain: "test", code: 1)
+    }
+
+    func createCollection(organizationId: String, title: String, parentId: String?) async throws -> Collection {
         throw NSError(domain: "test", code: 1)
     }
 

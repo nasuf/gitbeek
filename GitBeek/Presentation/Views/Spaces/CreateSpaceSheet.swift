@@ -47,13 +47,6 @@ struct CreateSpaceSheet: View {
             case .collection: return "A container for organizing spaces"
             }
         }
-
-        var spaceType: Space.SpaceType? {
-            switch self {
-            case .space: return .document
-            case .collection: return .collection
-            }
-        }
     }
 
     // MARK: - Computed Properties
@@ -77,13 +70,13 @@ struct CreateSpaceSheet: View {
                 // Details section
                 detailsSection
 
-                // Parent collection (for spaces only)
-                if spaceType == .space {
-                    parentSection
-                }
+                // Parent collection
+                parentSection
 
-                // Visibility section
-                visibilitySection
+                // Visibility section (spaces only)
+                if spaceType == .space {
+                    visibilitySection
+                }
             }
             .navigationTitle("New \(spaceType.rawValue)")
             .navigationBarTitleDisplayMode(.inline)
@@ -110,6 +103,12 @@ struct CreateSpaceSheet: View {
                 Text(error?.localizedDescription ?? "An unknown error occurred.")
             }
             .interactiveDismissDisabled(isCreating)
+            .task {
+                // Ensure collections are loaded when sheet appears
+                if viewModel.allCollections.isEmpty && !viewModel.isLoading {
+                    await viewModel.loadSpaces(organizationId: organizationId)
+                }
+            }
         }
     }
 
@@ -158,30 +157,40 @@ struct CreateSpaceSheet: View {
 
     private var parentSection: some View {
         Section {
-            Picker("Parent Collection", selection: $parentCollection) {
-                Text("None (Top Level)")
-                    .tag(nil as Collection?)
+            if viewModel.isLoading && availableCollections.isEmpty {
+                HStack {
+                    Text("Parent Collection")
+                    Spacer()
+                    ProgressView()
+                }
+            } else {
+                Picker("Parent Collection", selection: $parentCollection) {
+                    Text("None (Top Level)")
+                        .tag(nil as Collection?)
 
-                ForEach(availableCollections) { collection in
-                    Label {
-                        Text(collection.displayTitle)
-                    } icon: {
-                        if let emoji = collection.emoji {
-                            Text(emoji)
-                        } else {
-                            Image(systemName: "folder.fill")
+                    ForEach(availableCollections) { collection in
+                        Label {
+                            Text(collection.displayTitle)
+                        } icon: {
+                            if let emoji = collection.emoji {
+                                Text(emoji)
+                            } else {
+                                Image(systemName: "folder.fill")
+                            }
                         }
+                        .tag(collection as Collection?)
                     }
-                    .tag(collection as Collection?)
                 }
             }
         } header: {
             Text("Organization")
         } footer: {
-            if availableCollections.isEmpty {
-                Text("No collections available. Create a collection first to organize spaces.")
+            if viewModel.isLoading && availableCollections.isEmpty {
+                Text("Loading collections...")
+            } else if availableCollections.isEmpty {
+                Text("No collections available.")
             } else {
-                Text("Optionally place this space inside a collection.")
+                Text("Optionally place this \(spaceType == .space ? "space" : "collection") inside a collection.")
             }
         }
     }
@@ -233,13 +242,19 @@ struct CreateSpaceSheet: View {
                 let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                 let trimmedEmoji = emoji.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                try await viewModel.createSpace(
-                    title: trimmedTitle,
-                    emoji: trimmedEmoji.isEmpty ? nil : trimmedEmoji,
-                    visibility: visibility,
-                    type: spaceType.spaceType,
-                    parentId: parentCollection?.id
-                )
+                if spaceType == .collection {
+                    try await viewModel.createCollection(
+                        title: trimmedTitle,
+                        parentId: parentCollection?.id
+                    )
+                } else {
+                    try await viewModel.createSpace(
+                        title: trimmedTitle,
+                        emoji: trimmedEmoji.isEmpty ? nil : trimmedEmoji,
+                        visibility: visibility,
+                        parentId: parentCollection?.id
+                    )
+                }
 
                 await MainActor.run {
                     dismiss()
@@ -267,7 +282,8 @@ private actor PreviewSpaceRepository: SpaceRepository {
     func getCollections(organizationId: String) async throws -> [Collection] { [] }
     func getSpaces(organizationId: String) async throws -> [Space] { [] }
     func getSpace(id: String) async throws -> Space { fatalError() }
-    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, type: Space.SpaceType?, parentId: String?) async throws -> Space { fatalError() }
+    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, parentId: String?) async throws -> Space { fatalError() }
+    func createCollection(organizationId: String, title: String, parentId: String?) async throws -> Collection { fatalError() }
     func updateSpace(id: String, title: String?, emoji: String?, visibility: Space.Visibility?, parentId: String?) async throws -> Space { fatalError() }
     func deleteSpace(id: String) async throws {}
     func restoreSpace(id: String) async throws -> Space { fatalError() }

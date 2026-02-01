@@ -32,3 +32,9 @@ struct CollectionsListDTO: Codable, Sendable {
     let items: [CollectionDTO]
     let next: NextPageDTO?
 }
+
+/// Create collection request
+struct CreateCollectionRequestDTO: Codable, Sendable {
+    let title: String
+    let parent: String?
+}

@@ -150,10 +150,16 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.getSpace(spaceId: spaceId))
     }
 
-    /// Create new space or collection
-    func createSpace(orgId: String, title: String, emoji: String? = nil, visibility: SpaceVisibility = .private, type: SpaceType? = nil, parent: String? = nil) async throws -> SpaceDTO {
-        let request = SpaceRequestDTO(title: title, emoji: emoji, visibility: visibility, type: type, parent: parent)
+    /// Create new space
+    func createSpace(orgId: String, title: String, emoji: String? = nil, visibility: SpaceVisibility = .private, parent: String? = nil) async throws -> SpaceDTO {
+        let request = SpaceRequestDTO(title: title, emoji: emoji, visibility: visibility, parent: parent)
         return try await client.request(GitBookEndpoint.createSpace(orgId: orgId, request: request))
+    }
+
+    /// Create new collection
+    func createCollection(orgId: String, title: String, parent: String? = nil) async throws -> CollectionDTO {
+        let request = CreateCollectionRequestDTO(title: title, parent: parent)
+        return try await client.request(GitBookEndpoint.createCollection(orgId: orgId, request: request))
     }
 
     /// Update space

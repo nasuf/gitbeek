@@ -462,9 +462,16 @@ private final class MockSpaceRepositoryForDetail: SpaceRepository, @unchecked Se
         title: String,
         emoji: String?,
         visibility: Space.Visibility,
-        type: Space.SpaceType?,
         parentId: String?
     ) async throws -> Space {
+        throw MockDetailError.failed
+    }
+
+    func createCollection(
+        organizationId: String,
+        title: String,
+        parentId: String?
+    ) async throws -> Collection {
         throw MockDetailError.failed
     }
 

@@ -16,6 +16,8 @@ struct CollectionRowView: View {
     let onToggle: () -> Void
     let onSpaceTap: (Space) -> Void
     let onDelete: (Space) -> Void
+    var isExpandedCheck: ((String) -> Bool)?
+    var onToggleById: ((String) -> Void)?
 
     // MARK: - Body
 
@@ -25,7 +27,7 @@ struct CollectionRowView: View {
             collectionHeader
 
             // Children (when expanded)
-            if isExpanded && !collection.children.isEmpty {
+            if isExpanded && collection.childCount > 0 {
                 childrenList
             }
         }
@@ -114,6 +116,20 @@ struct CollectionRowView: View {
                 .padding(.horizontal, AppSpacing.md)
 
             VStack(spacing: AppSpacing.sm) {
+                // Sub-collections
+                ForEach(collection.childCollections) { subCollection in
+                    CollectionRowView(
+                        collection: subCollection,
+                        isExpanded: isExpandedCheck?(subCollection.id) ?? false,
+                        onToggle: { onToggleById?(subCollection.id) },
+                        onSpaceTap: onSpaceTap,
+                        onDelete: onDelete,
+                        isExpandedCheck: isExpandedCheck,
+                        onToggleById: onToggleById
+                    )
+                }
+
+                // Child spaces
                 ForEach(collection.children) { space in
                     childSpaceRow(space)
                 }

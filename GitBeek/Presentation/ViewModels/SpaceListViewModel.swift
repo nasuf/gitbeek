@@ -61,14 +61,21 @@ final class SpaceListViewModel {
 
     // MARK: - Types
 
-    /// A collection with its child spaces
+    /// A collection with its child spaces and sub-collections
     struct CollectionWithSpaces: Identifiable, Equatable {
         let collection: Collection
         var children: [Space]
+        var childCollections: [CollectionWithSpaces]
 
         var id: String { collection.id }
-        var childCount: Int { children.count }
+        var childCount: Int { children.count + childCollections.count }
         var displayTitle: String { collection.displayTitle }
+
+        init(collection: Collection, children: [Space], childCollections: [CollectionWithSpaces] = []) {
+            self.collection = collection
+            self.children = children
+            self.childCollections = childCollections
+        }
     }
 
     // MARK: - Computed Properties
@@ -89,9 +96,9 @@ final class SpaceListViewModel {
         trashedSpaces.count
     }
 
-    /// All active collections
+    /// All active collections (flat list for pickers)
     var activeCollectionsList: [Collection] {
-        collections.map { $0.collection }
+        allCollections
     }
 
     /// All active spaces for flat view mode (sorted alphabetically)
@@ -196,12 +203,11 @@ final class SpaceListViewModel {
         await loadSpaces(organizationId: orgId)
     }
 
-    /// Create new space or collection
+    /// Create new space
     func createSpace(
         title: String,
         emoji: String?,
         visibility: Space.Visibility,
-        type: Space.SpaceType?,
         parentId: String?
     ) async throws {
         guard let orgId = organizationId else {
@@ -217,11 +223,39 @@ final class SpaceListViewModel {
                 title: title,
                 emoji: emoji,
                 visibility: visibility,
-                type: type,
                 parentId: parentId
             )
 
             allSpaces.append(newSpace)
+            organizeHierarchy()
+        } catch {
+            self.error = error
+            throw error
+        }
+
+        isLoading = false
+    }
+
+    /// Create new collection
+    func createCollection(
+        title: String,
+        parentId: String?
+    ) async throws {
+        guard let orgId = organizationId else {
+            throw SpaceListError.noOrganization
+        }
+
+        isLoading = true
+        error = nil
+
+        do {
+            let newCollection = try await spaceRepository.createCollection(
+                organizationId: orgId,
+                title: title,
+                parentId: parentId
+            )
+
+            allCollections.append(newCollection)
             organizeHierarchy()
         } catch {
             self.error = error
@@ -317,24 +351,37 @@ final class SpaceListViewModel {
 
         for space in activeSpaces {
             if let parentId = space.parentId, collectionIds.contains(parentId) {
-                // Space belongs to a collection
                 collectionChildren[parentId, default: []].append(space)
             } else {
-                // Top-level space or orphan (parent collection doesn't exist)
                 orphanSpaces.append(space)
             }
         }
 
-        // Create CollectionWithSpaces array from actual collections
-        collections = allCollections
-            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
-            .map { collection in
-                CollectionWithSpaces(
-                    collection: collection,
-                    children: (collectionChildren[collection.id] ?? [])
-                        .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
-                )
+        // Group sub-collections by parent collection ID
+        var subCollections: [String: [Collection]] = [:]
+        var topLevelCollections: [Collection] = []
+
+        for collection in allCollections {
+            if let parentId = collection.parentId, collectionIds.contains(parentId) {
+                subCollections[parentId, default: []].append(collection)
+            } else {
+                topLevelCollections.append(collection)
             }
+        }
+
+        // Recursively build collection tree
+        func buildCollectionTree(_ collection: Collection) -> CollectionWithSpaces {
+            let childSpaces = (collectionChildren[collection.id] ?? [])
+                .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            let childCols = (subCollections[collection.id] ?? [])
+                .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+                .map { buildCollectionTree($0) }
+            return CollectionWithSpaces(collection: collection, children: childSpaces, childCollections: childCols)
+        }
+
+        collections = topLevelCollections
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            .map { buildCollectionTree($0) }
 
         // Top-level spaces: spaces without a parent or parent not in our collections
         topLevelSpaces = orphanSpaces

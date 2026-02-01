@@ -18,15 +18,21 @@ protocol SpaceRepository: Sendable {
     /// Get space by ID
     func getSpace(id: String) async throws -> Space
 
-    /// Create new space or collection
+    /// Create new space
     func createSpace(
         organizationId: String,
         title: String,
         emoji: String?,
         visibility: Space.Visibility,
-        type: Space.SpaceType?,
         parentId: String?
     ) async throws -> Space
+
+    /// Create new collection
+    func createCollection(
+        organizationId: String,
+        title: String,
+        parentId: String?
+    ) async throws -> Collection
 
     /// Update space
     func updateSpace(

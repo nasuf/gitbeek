@@ -41,6 +41,9 @@ enum GitBookEndpoint: APIEndpoint {
     /// Get collection by ID
     case getCollection(collectionId: String)
 
+    /// Create collection in organization
+    case createCollection(orgId: String, request: CreateCollectionRequestDTO)
+
     // MARK: - Spaces
 
     /// List spaces in organization
@@ -149,6 +152,8 @@ enum GitBookEndpoint: APIEndpoint {
             return "/orgs/\(orgId)/collections"
         case .getCollection(let collectionId):
             return "/collections/\(collectionId)"
+        case .createCollection(let orgId, _):
+            return "/orgs/\(orgId)/collections"
 
         // Spaces
         case .listSpaces(let orgId, _):
@@ -213,7 +218,7 @@ enum GitBookEndpoint: APIEndpoint {
     var method: HTTPMethod {
         switch self {
         case .exchangeToken, .refreshToken,
-             .createSpace, .createPage, .createChangeRequest,
+             .createSpace, .createCollection, .createPage, .createChangeRequest,
              .mergeChangeRequest, .restoreSpace,
              .submitChangeRequestReview:
             return .post
@@ -272,6 +277,8 @@ enum GitBookEndpoint: APIEndpoint {
         case .refreshToken(let refreshToken, let clientId):
             return TokenRefreshRequestDTO(refreshToken: refreshToken, clientId: clientId)
         case .createSpace(_, let request), .updateSpace(_, let request):
+            return request
+        case .createCollection(_, let request):
             return request
         case .createPage(_, let request), .updatePage(_, _, let request):
             return request

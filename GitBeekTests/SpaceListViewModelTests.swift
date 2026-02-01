@@ -120,7 +120,6 @@ final class SpaceListViewModelTests: XCTestCase {
             title: "New Space",
             emoji: nil,
             visibility: .private,
-            type: .document,
             parentId: nil
         )
 
@@ -134,7 +133,6 @@ final class SpaceListViewModelTests: XCTestCase {
                 title: "Test",
                 emoji: nil,
                 visibility: .private,
-                type: nil,
                 parentId: nil
             )
             XCTFail("Expected error to be thrown")
@@ -600,7 +598,6 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
         title: String,
         emoji: String?,
         visibility: Space.Visibility,
-        type: Space.SpaceType?,
         parentId: String?
     ) async throws -> Space {
         if shouldFail {
@@ -611,7 +608,7 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
             title: title,
             emoji: emoji,
             visibility: visibility,
-            type: type,
+            type: .document,
             appURL: nil,
             publishedURL: nil,
             parentId: parentId,
@@ -620,6 +617,14 @@ private final class MockSpaceRepository: SpaceRepository, @unchecked Sendable {
             updatedAt: nil,
             deletedAt: nil
         )
+    }
+
+    func createCollection(
+        organizationId: String,
+        title: String,
+        parentId: String?
+    ) async throws -> Collection {
+        throw MockError.failed
     }
 
     func updateSpace(

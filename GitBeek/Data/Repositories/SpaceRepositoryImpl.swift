@@ -65,18 +65,15 @@ actor SpaceRepositoryImpl: SpaceRepository {
         title: String,
         emoji: String?,
         visibility: Space.Visibility,
-        type: Space.SpaceType?,
         parentId: String?
     ) async throws -> Space {
         let apiVisibility = SpaceVisibility(rawValue: visibility.rawValue) ?? .private
-        let apiType = type.flatMap { SpaceType(rawValue: $0.rawValue) }
 
         let dto = try await apiService.createSpace(
             orgId: organizationId,
             title: title,
             emoji: emoji,
             visibility: apiVisibility,
-            type: apiType,
             parent: parentId
         )
 
@@ -94,6 +91,28 @@ actor SpaceRepositoryImpl: SpaceRepository {
         }
 
         return space
+    }
+
+    func createCollection(
+        organizationId: String,
+        title: String,
+        parentId: String?
+    ) async throws -> Collection {
+        let dto = try await apiService.createCollection(
+            orgId: organizationId,
+            title: title,
+            parent: parentId
+        )
+
+        let collection = Collection(from: dto)
+
+        // Update cache
+        if var collections = cachedCollections[organizationId] {
+            collections.append(collection)
+            cachedCollections[organizationId] = collections
+        }
+
+        return collection
     }
 
     func updateSpace(
