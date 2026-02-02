@@ -132,4 +132,44 @@ final class ChangeRequestRepositoryImpl: ChangeRequestRepository {
         let dto = try await apiService.listRequestedReviewers(spaceId: spaceId, changeRequestId: changeRequestId)
         return dto.items.compactMap { $0.user.map { UserReference.from(dto: $0) } }
     }
+
+    // MARK: - Comments
+
+    func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] {
+        let dto = try await apiService.listComments(spaceId: spaceId, changeRequestId: changeRequestId)
+        return dto.items.map { Comment.from(dto: $0) }
+    }
+
+    func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment {
+        let dto = try await apiService.createComment(spaceId: spaceId, changeRequestId: changeRequestId, markdown: markdown)
+        return Comment.from(dto: dto)
+    }
+
+    func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment {
+        let dto = try await apiService.updateComment(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, markdown: markdown)
+        return Comment.from(dto: dto)
+    }
+
+    func deleteComment(spaceId: String, changeRequestId: String, commentId: String) async throws {
+        try await apiService.deleteComment(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId)
+    }
+
+    func listReplies(spaceId: String, changeRequestId: String, commentId: String) async throws -> [CommentReply] {
+        let dto = try await apiService.listReplies(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId)
+        return dto.items.map { CommentReply.from(dto: $0) }
+    }
+
+    func createReply(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentReply {
+        let dto = try await apiService.createReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, markdown: markdown)
+        return CommentReply.from(dto: dto)
+    }
+
+    func updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, markdown: String) async throws -> CommentReply {
+        let dto = try await apiService.updateReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, replyId: replyId, markdown: markdown)
+        return CommentReply.from(dto: dto)
+    }
+
+    func deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String) async throws {
+        try await apiService.deleteReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, replyId: replyId)
+    }
 }

@@ -486,6 +486,15 @@ private final class MockChangeRequestRepository: ChangeRequestRepository, @unche
     func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference] {
         return []
     }
+
+    func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] { [] }
+    func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment { throw NSError(domain: "test", code: 1) }
+    func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment { throw NSError(domain: "test", code: 1) }
+    func deleteComment(spaceId: String, changeRequestId: String, commentId: String) async throws {}
+    func listReplies(spaceId: String, changeRequestId: String, commentId: String) async throws -> [CommentReply] { [] }
+    func createReply(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentReply { throw NSError(domain: "test", code: 1) }
+    func updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, markdown: String) async throws -> CommentReply { throw NSError(domain: "test", code: 1) }
+    func deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String) async throws {}
 }
 
 private final class MockOrganizationRepository: OrganizationRepository, @unchecked Sendable {

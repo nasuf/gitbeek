@@ -299,6 +299,52 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.listRequestedReviewers(spaceId: spaceId, changeRequestId: changeRequestId))
     }
 
+    // MARK: - Change Request Comments
+
+    /// List comments on a change request
+    func listComments(spaceId: String, changeRequestId: String) async throws -> CommentsListDTO {
+        try await client.request(GitBookEndpoint.listComments(spaceId: spaceId, changeRequestId: changeRequestId))
+    }
+
+    /// Create a comment on a change request
+    func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> CommentDTO {
+        let request = CommentRequestDTO(markdown: markdown)
+        return try await client.request(GitBookEndpoint.createComment(spaceId: spaceId, changeRequestId: changeRequestId, request: request))
+    }
+
+    /// Update a comment
+    func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentDTO {
+        let request = CommentRequestDTO(markdown: markdown)
+        return try await client.request(GitBookEndpoint.updateComment(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, request: request))
+    }
+
+    /// Delete a comment
+    func deleteComment(spaceId: String, changeRequestId: String, commentId: String) async throws {
+        try await client.requestVoid(GitBookEndpoint.deleteComment(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId))
+    }
+
+    /// List replies to a comment
+    func listReplies(spaceId: String, changeRequestId: String, commentId: String) async throws -> CommentRepliesListDTO {
+        try await client.request(GitBookEndpoint.listReplies(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId))
+    }
+
+    /// Create a reply to a comment
+    func createReply(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentReplyDTO {
+        let request = CommentRequestDTO(markdown: markdown)
+        return try await client.request(GitBookEndpoint.createReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, request: request))
+    }
+
+    /// Update a reply
+    func updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, markdown: String) async throws -> CommentReplyDTO {
+        let request = CommentRequestDTO(markdown: markdown)
+        return try await client.request(GitBookEndpoint.updateReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, replyId: replyId, request: request))
+    }
+
+    /// Delete a reply
+    func deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String) async throws {
+        try await client.requestVoid(GitBookEndpoint.deleteReply(spaceId: spaceId, changeRequestId: changeRequestId, commentId: commentId, replyId: replyId))
+    }
+
     // MARK: - Search
 
     /// Search in organization (returns grouped by space)

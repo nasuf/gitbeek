@@ -398,7 +398,8 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         let vm = ChangeRequestDetailViewModel(
             spaceId: spaceId,
             changeRequestId: changeRequestId,
-            changeRequestRepository: repository
+            changeRequestRepository: repository,
+            spaceRepository: DetailMockSpaceRepository()
         )
         return (vm, repository)
     }
@@ -785,4 +786,32 @@ final class DetailMockChangeRequestRepository: ChangeRequestRepository, @uncheck
         if shouldThrowOnListReviews { throw mockError }
         return mockRequestedReviewers
     }
+
+    func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] { [] }
+    func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment { throw mockError }
+    func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment { throw mockError }
+    func deleteComment(spaceId: String, changeRequestId: String, commentId: String) async throws { throw mockError }
+    func listReplies(spaceId: String, changeRequestId: String, commentId: String) async throws -> [CommentReply] { [] }
+    func createReply(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentReply { throw mockError }
+    func updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, markdown: String) async throws -> CommentReply { throw mockError }
+    func deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String) async throws { throw mockError }
+}
+
+final class DetailMockSpaceRepository: SpaceRepository, @unchecked Sendable {
+    private let mockError = NSError(domain: "test", code: 1)
+
+    func getCollections(organizationId: String) async throws -> [Collection] { [] }
+    func getSpaces(organizationId: String) async throws -> [Space] { [] }
+    func getSpace(id: String) async throws -> Space { throw mockError }
+    func createSpace(organizationId: String, title: String, emoji: String?, visibility: Space.Visibility, parentId: String?) async throws -> Space { throw mockError }
+    func createCollection(organizationId: String, title: String, parentId: String?) async throws -> Collection { throw mockError }
+    func updateSpace(id: String, title: String?, emoji: String?, visibility: Space.Visibility?, parentId: String?) async throws -> Space { throw mockError }
+    func moveSpace(id: String, parentId: String?) async throws {}
+    func deleteSpace(id: String) async throws {}
+    func restoreSpace(id: String) async throws -> Space { throw mockError }
+    func renameCollection(id: String, title: String) async throws -> Collection { throw mockError }
+    func deleteCollection(id: String) async throws {}
+    func moveCollection(id: String, parentId: String?) async throws {}
+    func getCachedSpaces(organizationId: String) async -> [Space] { [] }
+    func clearCache() async {}
 }

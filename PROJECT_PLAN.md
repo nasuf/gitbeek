@@ -304,37 +304,9 @@ GitBookiOS/
 
 ---
 
-### Phase 4: Content Editing
+### ~~Phase 4: Content Editing~~ ❌ 已取消
 
-#### 4.1 Markdown Editor
-- [ ] 富文本编辑器集成
-- [ ] Markdown 工具栏 (Liquid Glass floating toolbar)
-  - [ ] Bold, Italic, Strikethrough
-  - [ ] Headings (H1-H6)
-  - [ ] Lists (ordered, unordered, checklist)
-  - [ ] Links
-  - [ ] Code (inline and block)
-  - [ ] Quotes
-  - [ ] Tables
-  - [ ] Horizontal rule
-- [ ] 实时预览模式 (split view)
-- [ ] 源码模式 (raw markdown)
-- [ ] 自动保存草稿
-- [ ] Undo/Redo 支持
-
-#### 4.2 Media Management
-- [ ] 图片选择器 (PHPicker)
-- [ ] 图片上传到 GitBook
-- [ ] 文件附件支持
-- [ ] 图片压缩 (上传前)
-
-#### 4.3 Page Management
-- [ ] 创建新页面
-- [ ] 编辑现有页面
-- [ ] 删除页面 (confirmation)
-- [ ] 页面重排序 (drag & drop)
-- [ ] 移动页面到其他位置
-- [ ] 复制页面
+> **原因**: GitBook API 不提供页面内容编辑端点。所有 content 端点（包括 Change Request 中的）均为只读 (GET only)。内容编辑只能通过 GitBook Web 编辑器或 Git Sync 完成。此 Phase 整体取消。
 
 ---
 
@@ -352,22 +324,24 @@ GitBookiOS/
 - [x] 代码简化 (减少 ~94 行, 16%)
 - [x] 创建测试文档 (19 个测试场景)
 - [x] Change Request 详情视图
-- [ ] 创建新 Change Request
-- [ ] 在 Change Request 上下文中编辑
+- [ ] 创建新 Change Request (POST /spaces/{spaceId}/change-requests，仅支持 subject)
+- ~~在 Change Request 上下文中编辑~~ ❌ API 不支持内容编辑
 - [x] 查看 diff/变更 (段落级 LCS diff，基于 revision API 获取前后内容)
-- [ ] 添加评论
+- [x] 评论系统 (POST/GET/PUT/DELETE comments + replies，API 完整支持)
 - [x] 合并 Change Request
 - [x] 关闭/归档 Change Request (本地状态同步更新)
 
 #### 5.2 Review Flow
-- [ ] 请求 review
+- [ ] 请求 review (POST /change-requests/{crId}/requested-reviewers，API 支持)
 - [x] 批准变更
 - [x] 请求修改
-- [ ] 针对具体内容评论
+- [x] 评论与回复 (comments + replies CRUD，API 完整支持)
 
 ---
 
-### Phase 6: Offline Support
+### Phase 6: Offline Reading Cache
+
+> **调整**: 由于 API 不支持内容编辑，Phase 6 从"Offline Support"简化为"Offline Reading Cache"，移除所有离线编辑相关功能。
 
 #### 6.1 Content Caching
 - [ ] 缓存空间元数据
@@ -375,16 +349,9 @@ GitBookiOS/
 - [ ] 本地缓存图片
 - [ ] 后台同步 (在线时)
 
-#### 6.2 Offline Editing
-- [ ] 离线时编辑队列
-- [ ] 同步状态 UI
-- [ ] 冲突检测
-- [ ] 冲突解决 UI
-- [ ] 失败同步重试
+#### ~~6.2 Offline Editing~~ ❌ 已取消（API 不支持内容编辑）
 
-#### 6.3 Sync Management
-- [ ] 手动同步触发
-- [ ] 每个空间的同步状态
+#### 6.3 Cache Management
 - [ ] 清除缓存选项
 - [ ] 存储使用量显示
 
@@ -432,12 +399,10 @@ GitBookiOS/
 #### 8.1 App Settings
 - [ ] SettingsView (NavigationStack + Form with Liquid Glass)
 - [x] 主题选择 (System / Light / Dark 三选一)
-- [ ] 编辑器偏好
-  - [ ] 默认编辑模式
-  - [ ] 自动保存间隔
+- ~~编辑器偏好~~ ❌ 已取消（无编辑功能）
+- [ ] 阅读偏好
   - [ ] 字体大小
-- [ ] 通知设置
-- [ ] 语言选择
+  - [ ] 代码高亮主题
 - [ ] 缓存管理
 
 #### 8.2 About & Support
@@ -521,22 +486,31 @@ Base URL: `https://api.gitbook.com/v1`
 | PATCH | /spaces/{spaceId} | Update space |
 | DELETE | /spaces/{spaceId} | Delete space |
 
-### Content
+### Content (Read-Only)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /spaces/{spaceId}/content | List content |
 | GET | /spaces/{spaceId}/content/path/{path} | Get by path |
-| POST | /spaces/{spaceId}/content | Create page |
-| PUT | /spaces/{spaceId}/content/{pageId} | Update page |
-| DELETE | /spaces/{spaceId}/content/{pageId} | Delete page |
+| GET | /spaces/{spaceId}/content/page/{pageId} | Get page by ID |
+
+> **注意**: GitBook API 不提供 POST/PUT/DELETE content 端点，页面内容无法通过 API 编辑。
 
 ### Change Requests
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /spaces/{spaceId}/change-requests | List CRs |
-| POST | /spaces/{spaceId}/change-requests | Create CR |
+| POST | /spaces/{spaceId}/change-requests | Create CR (subject only) |
 | GET | /spaces/{spaceId}/change-requests/{id} | Get CR |
 | POST | /spaces/{spaceId}/change-requests/{id}/merge | Merge CR |
+
+### Comments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /spaces/{spaceId}/change-requests/{crId}/comments | List comments |
+| POST | /spaces/{spaceId}/change-requests/{crId}/comments | Create comment |
+| PUT | /spaces/{spaceId}/change-requests/{crId}/comments/{id} | Update comment |
+| DELETE | /spaces/{spaceId}/change-requests/{crId}/comments/{id} | Delete comment |
+| POST | /spaces/{spaceId}/change-requests/{crId}/comments/{id}/replies | Add reply |
 
 ---
 
@@ -600,14 +574,14 @@ Button("Action") { }
 - [x] Phase 3.4: Basic markdown rendering
 
 ### V1.0
-- [ ] Phase 4: Full content editing
+- ~~Phase 4: Full content editing~~ ❌ 已取消（API 不支持）
 - [x] Phase 5.1: Change Request management (completed)
 - [x] Phase 5.2: Review Flow (approve/request changes)
-- [ ] Phase 6: Offline content viewing
+- [ ] Phase 5: 评论系统 + 创建 CR + 请求 review
+- [ ] Phase 6: Offline reading cache
 - [x] Phase 7: Search & Discovery (completed)
 
 ### V1.1+
-- [ ] Offline editing with sync
 - [ ] Advanced search with filters
 - [ ] Widgets and extensions
 - [ ] iPad optimization
@@ -669,7 +643,7 @@ dependencies: [
 - 所有 API 调用需要 Bearer token 认证
 - 注意 API 速率限制
 - GitBook 内部使用自定义 JSON 格式，markdown 作为导出格式
-- 离线冲突处理：实现 last-write-wins 或手动合并
+- **GitBook API 限制**: 页面内容端点全部只读，无法通过 API 编辑页面内容。编辑只能通过 Web 编辑器或 Git Sync
 - iOS 26 最低版本要求：确保用户群体覆盖（考虑 iOS 17+ 降级方案）
 - **iOS 18-25 兼容性**: 应用已完全适配 iOS 18+，通过 `.ultraThinMaterial` fallback 提供一致体验
 - **GitBook API 日期格式**: 支持 ISO8601 标准格式及带小数秒的扩展格式

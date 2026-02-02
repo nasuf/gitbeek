@@ -23,82 +23,74 @@ struct ChangeRequestStatusChange {
 final class ChangeRequestDetailViewModel {
     // MARK: - State
 
-    /// Change request details
     private(set) var changeRequest: ChangeRequest?
-
-    /// Change request diff
     private(set) var diff: ChangeRequestDiff?
 
-    /// Loading states
     private(set) var isLoading = false
     private(set) var isLoadingDiff = false
     private(set) var isMerging = false
 
-    /// Error state
+    /// Track whether each section has been loaded at least once
+    private(set) var hasLoadedOnce = false
+    private(set) var hasLoadedDiff = false
+    private(set) var hasLoadedReviews = false
+    private(set) var hasLoadedComments = false
+
     private(set) var error: Error?
 
-    /// Show merge confirmation
     var showMergeConfirmation = false
-
-    /// Show archive confirmation
     var showArchiveConfirmation = false
 
-    /// Is updating status
     private(set) var isUpdatingStatus = false
-
-    /// Did merge successfully
     private(set) var didMerge = false
-
-    /// Did archive successfully
     private(set) var didArchive = false
 
-    /// Reviews
     private(set) var reviews: [ChangeRequestReview] = []
-
-    /// Requested reviewers
     private(set) var requestedReviewers: [UserReference] = []
-
-    /// Loading reviews
     private(set) var isLoadingReviews = false
-
-    /// Submitting review
     private(set) var isSubmittingReview = false
 
-    /// Confirmation dialogs
     var showApproveConfirmation = false
     var showRequestChangesConfirmation = false
+
+    // MARK: - Comments State
+
+    private(set) var comments: [Comment] = []
+    private(set) var isLoadingComments = false
+    private(set) var isPostingComment = false
+    var newCommentText = ""
+    private(set) var repliesByCommentId: [String: [CommentReply]] = [:]
+    var expandedCommentIds: Set<String> = []
+    var editingCommentId: String?
+    var editingReplyId: String?
+    var editText = ""
+    var replyingToCommentId: String?
+    var replyText = ""
+    var deletingCommentId: String?
+    var deletingReplyCommentId: String?
+    var deletingReplyId: String?
+    var showDeleteConfirmation = false
+
+    private(set) var space: Space?
+    private(set) var collectionName: String?
 
     // MARK: - Dependencies
 
     private let changeRequestRepository: ChangeRequestRepository
+    private let spaceRepository: SpaceRepository
     private let spaceId: String
     private let changeRequestId: String
 
     // MARK: - Computed Properties
 
-    /// Has error
-    var hasError: Bool {
-        error != nil
-    }
+    var hasError: Bool { error != nil }
+    var errorMessage: String? { error?.localizedDescription }
+    var canMerge: Bool { changeRequest?.canMerge ?? false }
+    var canArchive: Bool { changeRequest?.isActive ?? false }
 
-    /// Error message
-    var errorMessage: String? {
-        error?.localizedDescription
-    }
-
-    /// Can merge
-    var canMerge: Bool {
-        changeRequest?.canMerge ?? false
-    }
-
-    /// Can archive (open or draft CRs)
-    var canArchive: Bool {
-        changeRequest?.isActive ?? false
-    }
-
-    /// Has diff loaded
-    var hasDiff: Bool {
-        diff != nil
+    /// Page titles affected by this CR
+    var affectedPageTitles: [String] {
+        diff?.changes.filter { !$0.isFile }.map { $0.title } ?? []
     }
 
     // MARK: - Initialization
@@ -106,16 +98,17 @@ final class ChangeRequestDetailViewModel {
     init(
         spaceId: String,
         changeRequestId: String,
-        changeRequestRepository: ChangeRequestRepository
+        changeRequestRepository: ChangeRequestRepository,
+        spaceRepository: SpaceRepository
     ) {
         self.spaceId = spaceId
         self.changeRequestId = changeRequestId
         self.changeRequestRepository = changeRequestRepository
+        self.spaceRepository = spaceRepository
     }
 
     // MARK: - Actions
 
-    /// Load change request details
     func load() async {
         isLoading = true
         error = nil
@@ -130,10 +123,23 @@ final class ChangeRequestDetailViewModel {
             print("Error loading change request: \(error)")
         }
 
+        // Load space info for display (non-blocking)
+        do {
+            let loadedSpace = try await spaceRepository.getSpace(id: spaceId)
+            space = loadedSpace
+            // Load parent collection name if space belongs to one
+            if let parentId = loadedSpace.parentId, let orgId = loadedSpace.organizationId {
+                let collections = try await spaceRepository.getCollections(organizationId: orgId)
+                collectionName = collections.first(where: { $0.id == parentId })?.title
+            }
+        } catch {
+            print("Error loading space info: \(error)")
+        }
+
         isLoading = false
+        hasLoadedOnce = true
     }
 
-    /// Load change request diff and fetch content for each change
     func loadDiff() async {
         guard !isLoadingDiff else { return }
 
@@ -195,9 +201,9 @@ final class ChangeRequestDetailViewModel {
         }
 
         isLoadingDiff = false
+        hasLoadedDiff = true
     }
 
-    /// Merge change request
     func merge() async {
         guard canMerge else { return }
 
@@ -222,7 +228,6 @@ final class ChangeRequestDetailViewModel {
         isMerging = false
     }
 
-    /// Archive/close change request
     func archive() async {
         guard canArchive else { return }
 
@@ -248,7 +253,6 @@ final class ChangeRequestDetailViewModel {
         isUpdatingStatus = false
     }
 
-    /// Load reviews and requested reviewers
     func loadReviews() async {
         isLoadingReviews = true
 
@@ -269,19 +273,17 @@ final class ChangeRequestDetailViewModel {
         }
 
         isLoadingReviews = false
+        hasLoadedReviews = true
     }
 
-    /// Approve the change request
     func approve() async {
         await submitReview(status: .approved)
     }
 
-    /// Request changes on the change request
     func requestChanges() async {
         await submitReview(status: .changesRequested)
     }
 
-    /// Submit a review with the given status
     private func submitReview(status: ReviewStatus) async {
         isSubmittingReview = true
         error = nil
@@ -301,8 +303,176 @@ final class ChangeRequestDetailViewModel {
         isSubmittingReview = false
     }
 
-    /// Clear error
     func clearError() {
         error = nil
+    }
+
+    // MARK: - Comment Actions
+
+    func loadComments() async {
+        isLoadingComments = true
+        do {
+            comments = try await changeRequestRepository.listComments(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId
+            )
+        } catch {
+            print("Error loading comments: \(error)")
+        }
+        isLoadingComments = false
+        hasLoadedComments = true
+    }
+
+    func postComment() async {
+        let text = newCommentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        isPostingComment = true
+        do {
+            let comment = try await changeRequestRepository.createComment(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                markdown: text
+            )
+            comments.append(comment)
+            newCommentText = ""
+        } catch {
+            self.error = error
+            print("Error posting comment: \(error)")
+        }
+        isPostingComment = false
+    }
+
+    func updateComment(commentId: String) async {
+        let text = editText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        do {
+            let updated = try await changeRequestRepository.updateComment(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId,
+                markdown: text
+            )
+            if let index = comments.firstIndex(where: { $0.id == commentId }) {
+                comments[index] = updated
+            }
+            editingCommentId = nil
+            editText = ""
+        } catch {
+            self.error = error
+            print("Error updating comment: \(error)")
+        }
+    }
+
+    func deleteComment(commentId: String) async {
+        do {
+            try await changeRequestRepository.deleteComment(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId
+            )
+            comments.removeAll { $0.id == commentId }
+            repliesByCommentId.removeValue(forKey: commentId)
+        } catch {
+            self.error = error
+            print("Error deleting comment: \(error)")
+        }
+    }
+
+    func loadReplies(commentId: String) async {
+        do {
+            let replies = try await changeRequestRepository.listReplies(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId
+            )
+            repliesByCommentId[commentId] = replies
+        } catch {
+            print("Error loading replies: \(error)")
+        }
+    }
+
+    func postReply(commentId: String) async {
+        let text = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        do {
+            let reply = try await changeRequestRepository.createReply(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId,
+                markdown: text
+            )
+            repliesByCommentId[commentId, default: []].append(reply)
+            replyingToCommentId = nil
+            replyText = ""
+            updateReplyCount(commentId: commentId, delta: 1)
+        } catch {
+            self.error = error
+            print("Error posting reply: \(error)")
+        }
+    }
+
+    func updateReply(commentId: String, replyId: String) async {
+        let text = editText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        do {
+            let updated = try await changeRequestRepository.updateReply(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId,
+                replyId: replyId,
+                markdown: text
+            )
+            if var replies = repliesByCommentId[commentId],
+               let index = replies.firstIndex(where: { $0.id == replyId }) {
+                replies[index] = updated
+                repliesByCommentId[commentId] = replies
+            }
+            editingReplyId = nil
+            editText = ""
+        } catch {
+            self.error = error
+            print("Error updating reply: \(error)")
+        }
+    }
+
+    func deleteReply(commentId: String, replyId: String) async {
+        do {
+            try await changeRequestRepository.deleteReply(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                commentId: commentId,
+                replyId: replyId
+            )
+            repliesByCommentId[commentId]?.removeAll { $0.id == replyId }
+            updateReplyCount(commentId: commentId, delta: -1)
+        } catch {
+            self.error = error
+            print("Error deleting reply: \(error)")
+        }
+    }
+
+    private func updateReplyCount(commentId: String, delta: Int) {
+        guard let index = comments.firstIndex(where: { $0.id == commentId }) else { return }
+        let c = comments[index]
+        comments[index] = Comment(
+            id: c.id, body: c.body, postedAt: c.postedAt, editedAt: c.editedAt,
+            postedBy: c.postedBy, replyCount: max(0, c.replyCount + delta),
+            permissions: c.permissions, status: c.status
+        )
+    }
+
+    func confirmDelete() async {
+        if let commentId = deletingCommentId {
+            await deleteComment(commentId: commentId)
+            deletingCommentId = nil
+        } else if let commentId = deletingReplyCommentId, let replyId = deletingReplyId {
+            await deleteReply(commentId: commentId, replyId: replyId)
+            deletingReplyCommentId = nil
+            deletingReplyId = nil
+        }
     }
 }

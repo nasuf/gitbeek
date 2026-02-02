@@ -178,7 +178,8 @@ extension View {
             ChangeRequestDetailView(
                 spaceId: spaceId,
                 changeRequestId: changeRequestId,
-                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository,
+                spaceRepository: DependencyContainer.shared.spaceRepository
             )
 
         case .search(let organizationId):

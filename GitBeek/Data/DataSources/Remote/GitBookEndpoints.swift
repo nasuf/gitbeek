@@ -131,6 +131,32 @@ enum GitBookEndpoint: APIEndpoint {
     /// List requested reviewers for a change request
     case listRequestedReviewers(spaceId: String, changeRequestId: String)
 
+    // MARK: - Change Request Comments
+
+    /// List comments on a change request
+    case listComments(spaceId: String, changeRequestId: String)
+
+    /// Create a comment on a change request
+    case createComment(spaceId: String, changeRequestId: String, request: CommentRequestDTO)
+
+    /// Update a comment
+    case updateComment(spaceId: String, changeRequestId: String, commentId: String, request: CommentRequestDTO)
+
+    /// Delete a comment
+    case deleteComment(spaceId: String, changeRequestId: String, commentId: String)
+
+    /// List replies to a comment
+    case listReplies(spaceId: String, changeRequestId: String, commentId: String)
+
+    /// Create a reply to a comment
+    case createReply(spaceId: String, changeRequestId: String, commentId: String, request: CommentRequestDTO)
+
+    /// Update a reply
+    case updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, request: CommentRequestDTO)
+
+    /// Delete a reply
+    case deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String)
+
     // MARK: - Search
 
     /// Search in organization
@@ -227,6 +253,24 @@ enum GitBookEndpoint: APIEndpoint {
         case .listRequestedReviewers(let spaceId, let changeRequestId):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/requested-reviewers"
 
+        // Comments
+        case .listComments(let spaceId, let changeRequestId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments"
+        case .createComment(let spaceId, let changeRequestId, _):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments"
+        case .updateComment(let spaceId, let changeRequestId, let commentId, _):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)"
+        case .deleteComment(let spaceId, let changeRequestId, let commentId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)"
+        case .listReplies(let spaceId, let changeRequestId, let commentId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)/replies"
+        case .createReply(let spaceId, let changeRequestId, let commentId, _):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)/replies"
+        case .updateReply(let spaceId, let changeRequestId, let commentId, let replyId, _):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)/replies/\(replyId)"
+        case .deleteReply(let spaceId, let changeRequestId, let commentId, let replyId):
+            return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/comments/\(commentId)/replies/\(replyId)"
+
         // Search
         case .searchOrganization(let orgId, _, _):
             return "/orgs/\(orgId)/search"
@@ -241,11 +285,15 @@ enum GitBookEndpoint: APIEndpoint {
              .createSpace, .createCollection, .createPage, .createChangeRequest,
              .mergeChangeRequest, .restoreSpace,
              .submitChangeRequestReview,
-             .moveSpace, .moveCollection:
+             .moveSpace, .moveCollection,
+             .createComment, .createReply:
             return .post
         case .updateSpace, .updatePage, .updateChangeRequest, .updateCollection:
             return .patch
-        case .deleteSpace, .deletePage, .deleteCollection:
+        case .updateComment, .updateReply:
+            return .put
+        case .deleteSpace, .deletePage, .deleteCollection,
+             .deleteComment, .deleteReply:
             return .delete
         default:
             return .get
@@ -314,6 +362,10 @@ enum GitBookEndpoint: APIEndpoint {
         case .updateChangeRequest(_, _, let request):
             return request
         case .submitChangeRequestReview(_, _, let request):
+            return request
+        case .createComment(_, _, let request), .updateComment(_, _, _, let request):
+            return request
+        case .createReply(_, _, _, let request), .updateReply(_, _, _, _, let request):
             return request
         default:
             return nil

@@ -62,7 +62,8 @@ enum NavigationDestinationBuilder {
             ChangeRequestDetailView(
                 spaceId: spaceId,
                 changeRequestId: changeRequestId,
-                changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+                changeRequestRepository: DependencyContainer.shared.changeRequestRepository,
+                spaceRepository: DependencyContainer.shared.spaceRepository
             )
 
         case .pageEditor(let spaceId, let pageId):

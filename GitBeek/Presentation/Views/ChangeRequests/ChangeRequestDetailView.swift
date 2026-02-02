@@ -6,8 +6,8 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
-/// View for displaying change request details
 struct ChangeRequestDetailView: View {
     // MARK: - Properties
 
@@ -21,12 +21,14 @@ struct ChangeRequestDetailView: View {
     init(
         spaceId: String,
         changeRequestId: String,
-        changeRequestRepository: ChangeRequestRepository
+        changeRequestRepository: ChangeRequestRepository,
+        spaceRepository: SpaceRepository
     ) {
         let vm = ChangeRequestDetailViewModel(
             spaceId: spaceId,
             changeRequestId: changeRequestId,
-            changeRequestRepository: changeRequestRepository
+            changeRequestRepository: changeRequestRepository,
+            spaceRepository: spaceRepository
         )
         self._viewModel = State(initialValue: vm)
     }
@@ -34,33 +36,80 @@ struct ChangeRequestDetailView: View {
     // MARK: - Body
 
     var body: some View {
+        mainContent
+            .navigationTitle("Change Request")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar {
+                if let urlString = viewModel.changeRequest?.urls?.app,
+                   let url = URL(string: urlString) {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            openURL(url)
+                        } label: {
+                            Image(systemName: "safari")
+                        }
+                    }
+                }
+            }
+            .task {
+                await viewModel.load()
+                await viewModel.loadDiff()
+            }
+            .task {
+                await viewModel.loadReviews()
+            }
+            .task {
+                await viewModel.loadComments()
+            }
+            .onChange(of: viewModel.didMerge) { _, didMerge in
+                if didMerge {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        dismiss()
+                    }
+                }
+            }
+            .onChange(of: viewModel.didArchive) { _, didArchive in
+                if didArchive {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        dismiss()
+                    }
+                }
+            }
+            .modifier(ChangeRequestAlertsModifier(viewModel: viewModel))
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
         ZStack {
-            // Background
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
-            // Content
-            if viewModel.isLoading && viewModel.changeRequest == nil {
-                ProgressView("Loading...")
+            if !viewModel.hasLoadedOnce && viewModel.changeRequest == nil {
+                ScrollView {
+                    VStack(spacing: AppSpacing.lg) {
+                        headerSkeletonView
+                            .padding(.horizontal)
+                            .padding(.top, AppSpacing.sm)
+                        reviewsSkeletonView
+                            .padding(.horizontal)
+                        diffSkeletonView
+                            .padding(.horizontal)
+                        commentsSkeletonView
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, AppSpacing.lg)
+                }
             } else if let changeRequest = viewModel.changeRequest {
                 ScrollView {
                     VStack(spacing: AppSpacing.lg) {
-                        // Header card
                         headerCard(changeRequest: changeRequest)
                             .padding(.horizontal)
                             .padding(.top, AppSpacing.sm)
 
-                        // Actions
-                        if changeRequest.isActive {
-                            actionsSection(changeRequest: changeRequest)
-                                .padding(.horizontal)
-                        }
-
-                        // Reviews section
                         reviewsSection
                             .padding(.horizontal)
 
-                        // Review actions (only for non-authors)
                         if changeRequest.status == .open,
                            let currentUserId = authViewModel.currentUser?.id,
                            changeRequest.createdBy?.id != currentUserId {
@@ -68,97 +117,21 @@ struct ChangeRequestDetailView: View {
                                 .padding(.horizontal)
                         }
 
-                        // Diff section
                         diffSection
                             .padding(.horizontal)
+
+                        commentsSection
+                            .padding(.horizontal)
+
+                        if changeRequest.isActive {
+                            actionsSection(changeRequest: changeRequest)
+                                .padding(.horizontal)
+                        }
 
                         Spacer(minLength: AppSpacing.xl)
                     }
                     .padding(.bottom, AppSpacing.lg)
                 }
-            }
-        }
-        .navigationTitle("Change Request")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
-        .toolbar {
-            if let urlString = viewModel.changeRequest?.urls?.app,
-               let url = URL(string: urlString) {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        openURL(url)
-                    } label: {
-                        Image(systemName: "safari")
-                    }
-                }
-            }
-        }
-        .task {
-            await viewModel.load()
-            await viewModel.loadDiff()
-            await viewModel.loadReviews()
-        }
-        .onChange(of: viewModel.didMerge) { _, didMerge in
-            if didMerge {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    dismiss()
-                }
-            }
-        }
-        .onChange(of: viewModel.didArchive) { _, didArchive in
-            if didArchive {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    dismiss()
-                }
-            }
-        }
-        .alert("Merge Change Request?", isPresented: $viewModel.showMergeConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Merge", role: .destructive) {
-                Task {
-                    await viewModel.merge()
-                }
-            }
-        } message: {
-            Text("This will merge all changes into the main content. This action cannot be undone.")
-        }
-        .alert("Archive Change Request?", isPresented: $viewModel.showArchiveConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Archive", role: .destructive) {
-                Task {
-                    await viewModel.archive()
-                }
-            }
-        } message: {
-            Text("This will archive the change request. You can reopen it later if needed.")
-        }
-        .alert("Approve Change Request?", isPresented: $viewModel.showApproveConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Approve") {
-                Task {
-                    await viewModel.approve()
-                }
-            }
-        } message: {
-            Text("This will approve the change request.")
-        }
-        .alert("Request Changes?", isPresented: $viewModel.showRequestChangesConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Request Changes", role: .destructive) {
-                Task {
-                    await viewModel.requestChanges()
-                }
-            }
-        } message: {
-            Text("This will request changes on the change request.")
-        }
-        .alert("Error", isPresented: .constant(viewModel.hasError)) {
-            Button("OK") {
-                viewModel.clearError()
-            }
-        } message: {
-            if let message = viewModel.errorMessage {
-                Text(message)
             }
         }
     }
@@ -168,7 +141,42 @@ struct ChangeRequestDetailView: View {
     @ViewBuilder
     private func headerCard(changeRequest: ChangeRequest) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            // Title and number
+            // Breadcrumb: Collection › Space › Pages
+            if viewModel.space != nil || viewModel.collectionName != nil {
+                HStack(spacing: 0) {
+                    if let collectionName = viewModel.collectionName {
+                        Text(collectionName)
+                            .font(AppTypography.captionSmall)
+                            .foregroundStyle(.tertiary)
+                        Text(" › ")
+                            .font(AppTypography.captionSmall)
+                            .foregroundStyle(.quaternary)
+                    }
+                    if let space = viewModel.space {
+                        if let emoji = space.emoji {
+                            Text("\(emoji) ")
+                                .font(AppTypography.captionSmall)
+                        }
+                        Text(space.title)
+                            .font(AppTypography.captionSmall)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+
+                if !viewModel.affectedPageTitles.isEmpty {
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "doc.text")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(viewModel.affectedPageTitles.joined(separator: ", "))
+                            .font(AppTypography.captionSmall)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+
+            // Title and status
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     HStack(spacing: AppSpacing.sm) {
@@ -239,53 +247,55 @@ struct ChangeRequestDetailView: View {
 
     @ViewBuilder
     private func actionsSection(changeRequest: ChangeRequest) -> some View {
-        VStack(spacing: AppSpacing.sm) {
-            if viewModel.canMerge {
-                Button {
-                    viewModel.showMergeConfirmation = true
-                } label: {
-                    HStack {
-                        if viewModel.isMerging {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "arrow.merge")
+        VStack(spacing: AppSpacing.md) {
+            Divider()
+
+            HStack(spacing: AppSpacing.md) {
+                if viewModel.canArchive {
+                    Button(role: .destructive) {
+                        viewModel.showArchiveConfirmation = true
+                    } label: {
+                        HStack(spacing: AppSpacing.xs) {
+                            if viewModel.isUpdatingStatus {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "archivebox")
+                            }
+                            Text("Archive")
                         }
-
-                        Text("Merge Changes")
-                            .fontWeight(.semibold)
+                        .font(AppTypography.bodySmall)
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.sm)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.green)
-                    .foregroundStyle(.white)
-                    .cornerRadius(AppSpacing.cornerRadiusMedium)
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .disabled(viewModel.isMerging || viewModel.isUpdatingStatus)
                 }
-                .disabled(viewModel.isMerging || viewModel.isUpdatingStatus)
-            }
 
-            if viewModel.canArchive {
-                Button {
-                    viewModel.showArchiveConfirmation = true
-                } label: {
-                    HStack {
-                        if viewModel.isUpdatingStatus {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "archivebox")
+                if viewModel.canMerge {
+                    Button {
+                        viewModel.showMergeConfirmation = true
+                    } label: {
+                        HStack(spacing: AppSpacing.xs) {
+                            if viewModel.isMerging {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "arrow.merge")
+                            }
+                            Text("Merge")
                         }
-
-                        Text("Archive")
-                            .fontWeight(.medium)
+                        .font(AppTypography.bodySmall)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppSpacing.sm)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray5))
-                    .foregroundStyle(.red)
-                    .cornerRadius(AppSpacing.cornerRadiusMedium)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                    .disabled(viewModel.isMerging || viewModel.isUpdatingStatus)
                 }
-                .disabled(viewModel.isMerging || viewModel.isUpdatingStatus)
             }
         }
     }
@@ -299,16 +309,12 @@ struct ChangeRequestDetailView: View {
                 Label("Reviews", systemImage: "person.2")
                     .font(AppTypography.headlineMedium)
                     .fontWeight(.semibold)
-
                 Spacer()
-
-                if viewModel.isLoadingReviews {
-                    ProgressView()
-                        .controlSize(.small)
-                }
             }
 
-            if !viewModel.reviews.isEmpty || !viewModel.requestedReviewers.isEmpty {
+            if !viewModel.hasLoadedReviews {
+                reviewsSkeletonView
+            } else if !viewModel.reviews.isEmpty || !viewModel.requestedReviewers.isEmpty {
                 VStack(spacing: AppSpacing.sm) {
                     // Show submitted reviews
                     ForEach(viewModel.reviews) { review in
@@ -441,25 +447,514 @@ struct ChangeRequestDetailView: View {
         }
     }
 
+    // MARK: - Comments Section
+
+    @ViewBuilder
+    private var commentsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Label("Comments", systemImage: "bubble.left.and.bubble.right")
+                    .font(AppTypography.headlineMedium)
+                    .fontWeight(.semibold)
+
+                if !viewModel.comments.isEmpty {
+                    Text("\(viewModel.comments.count)")
+                        .font(AppTypography.captionSmall)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+            }
+
+            if !viewModel.hasLoadedComments {
+                commentsSkeletonView
+            } else if !viewModel.comments.isEmpty {
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(viewModel.comments) { comment in
+                        commentRow(comment: comment)
+                    }
+                }
+            } else if !viewModel.isLoadingComments {
+                Text("No comments yet")
+                    .font(AppTypography.bodySmall)
+                    .foregroundStyle(.secondary)
+            }
+
+            // New comment input
+            VStack(spacing: 0) {
+                TextField("Write a comment...", text: $viewModel.newCommentText, axis: .vertical)
+                    .font(AppTypography.bodySmall)
+                    .lineLimit(1...6)
+                    .padding(AppSpacing.sm)
+
+                HStack {
+                    Spacer()
+                    Button {
+                        Task { await viewModel.postComment() }
+                    } label: {
+                        if viewModel.isPostingComment {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Text("Send")
+                                .font(AppTypography.captionSmall)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(viewModel.newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isPostingComment)
+                }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.bottom, AppSpacing.sm)
+            }
+            .background(
+                .ultraThinMaterial,
+                in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+                    .stroke(Color(.separator), lineWidth: 0.5)
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func commentRow(comment: Comment) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // Author line with avatar
+            HStack(spacing: AppSpacing.sm) {
+                authorAvatar(user: comment.postedBy)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(comment.postedBy?.displayName ?? "Unknown")
+                        .font(AppTypography.bodySmall)
+                        .fontWeight(.semibold)
+
+                    HStack(spacing: AppSpacing.xs) {
+                        if let date = comment.postedAt {
+                            Text(formatDate(date))
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        if comment.editedAt != nil {
+                            Text("· edited")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+
+                Spacer()
+
+                // Context menu for actions
+                if comment.permissions.canEdit || comment.permissions.canDelete {
+                    Menu {
+                        if comment.permissions.canEdit {
+                            Button {
+                                viewModel.editingCommentId = comment.id
+                                viewModel.editText = comment.body
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                        }
+                        if comment.permissions.canDelete {
+                            Button(role: .destructive) {
+                                viewModel.deletingCommentId = comment.id
+                                viewModel.showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(AppSpacing.xs)
+                    }
+                }
+            }
+
+            // Body or edit field
+            if viewModel.editingCommentId == comment.id {
+                VStack(alignment: .trailing, spacing: AppSpacing.xs) {
+                    TextField("Edit comment", text: $viewModel.editText, axis: .vertical)
+                        .font(AppTypography.bodySmall)
+                        .lineLimit(1...5)
+                        .padding(AppSpacing.sm)
+                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusSmall))
+
+                    HStack(spacing: AppSpacing.sm) {
+                        Button("Cancel") {
+                            viewModel.editingCommentId = nil
+                            viewModel.editText = ""
+                        }
+                        .font(AppTypography.captionSmall)
+
+                        Button("Save") {
+                            Task { await viewModel.updateComment(commentId: comment.id) }
+                        }
+                        .font(AppTypography.captionSmall)
+                        .fontWeight(.semibold)
+                        .disabled(viewModel.editText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+            } else {
+                Text(comment.body)
+                    .font(AppTypography.bodySmall)
+                    .padding(.leading, 40) // Align with text after avatar
+            }
+
+            // Bottom bar: reply + expand replies
+            if viewModel.editingCommentId != comment.id {
+                HStack(spacing: AppSpacing.md) {
+                    if comment.permissions.canReply {
+                        Button {
+                            viewModel.replyingToCommentId = comment.id
+                            viewModel.replyText = ""
+                        } label: {
+                            Label("Reply", systemImage: "arrowshape.turn.up.left")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if comment.replyCount > 0 {
+                        Button {
+                            if viewModel.expandedCommentIds.contains(comment.id) {
+                                viewModel.expandedCommentIds.remove(comment.id)
+                            } else {
+                                viewModel.expandedCommentIds.insert(comment.id)
+                                Task { await viewModel.loadReplies(commentId: comment.id) }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: viewModel.expandedCommentIds.contains(comment.id) ? "chevron.up" : "chevron.down")
+                                Text("\(comment.replyCount) replies")
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.blue)
+                        }
+                    }
+                }
+                .padding(.leading, 40)
+            }
+
+            // Replies
+            if viewModel.expandedCommentIds.contains(comment.id),
+               let replies = viewModel.repliesByCommentId[comment.id] {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(replies) { reply in
+                        replyRow(reply: reply, commentId: comment.id)
+                    }
+                }
+                .padding(.leading, 40)
+                .overlay(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(.separator))
+                        .frame(width: 2)
+                        .padding(.leading, 15)
+                }
+            }
+
+            // Reply input
+            if viewModel.replyingToCommentId == comment.id {
+                HStack(spacing: AppSpacing.sm) {
+                    TextField("Write a reply...", text: $viewModel.replyText, axis: .vertical)
+                        .font(AppTypography.captionSmall)
+                        .lineLimit(1...3)
+                        .padding(AppSpacing.sm)
+                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusSmall))
+
+                    Button {
+                        Task { await viewModel.postReply(commentId: comment.id) }
+                    } label: {
+                        Image(systemName: "paperplane.fill")
+                            .font(.caption)
+                    }
+                    .disabled(viewModel.replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                    Button {
+                        viewModel.replyingToCommentId = nil
+                        viewModel.replyText = ""
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.leading, 40)
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+        )
+    }
+
+    @ViewBuilder
+    private func replyRow(reply: CommentReply, commentId: String) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            // Author line
+            HStack(spacing: AppSpacing.xs) {
+                authorAvatar(user: reply.postedBy, size: 22)
+
+                Text(reply.postedBy?.displayName ?? "Unknown")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+
+                if let date = reply.postedAt {
+                    Text("· \(formatDate(date))")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+
+                Spacer()
+
+                if reply.permissions.canEdit || reply.permissions.canDelete {
+                    Menu {
+                        if reply.permissions.canEdit {
+                            Button {
+                                viewModel.editingReplyId = reply.id
+                                viewModel.editText = reply.body
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                        }
+                        if reply.permissions.canDelete {
+                            Button(role: .destructive) {
+                                viewModel.deletingReplyCommentId = commentId
+                                viewModel.deletingReplyId = reply.id
+                                viewModel.showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(AppSpacing.xs)
+                    }
+                }
+            }
+
+            if viewModel.editingReplyId == reply.id {
+                VStack(alignment: .trailing, spacing: AppSpacing.xs) {
+                    TextField("Edit reply", text: $viewModel.editText, axis: .vertical)
+                        .font(AppTypography.captionSmall)
+                        .lineLimit(1...3)
+                        .padding(AppSpacing.sm)
+                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusSmall))
+
+                    HStack(spacing: AppSpacing.sm) {
+                        Button("Cancel") {
+                            viewModel.editingReplyId = nil
+                            viewModel.editText = ""
+                        }
+                        .font(.caption2)
+
+                        Button("Save") {
+                            Task { await viewModel.updateReply(commentId: commentId, replyId: reply.id) }
+                        }
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                    }
+                }
+            } else {
+                Text(reply.body)
+                    .font(AppTypography.captionSmall)
+                    .padding(.leading, 26) // Align with text after small avatar
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+
+    @ViewBuilder
+    private func authorAvatar(user: UserReference?, size: CGFloat = 30) -> some View {
+        if let photoURL = user?.photoURL, let url = URL(string: photoURL) {
+            WebImage(url: url)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size, height: size)
+                .clipShape(Circle())
+        } else {
+            let initial = user?.displayName.prefix(1).uppercased() ?? "?"
+            Text(initial)
+                .font(.system(size: size * 0.45, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(
+                    Circle()
+                        .fill(avatarColor(for: user?.displayName ?? ""))
+                )
+        }
+    }
+
+    private func avatarColor(for name: String) -> Color {
+        let colors: [Color] = [.blue, .purple, .orange, .pink, .teal, .indigo, .mint, .cyan]
+        let hash = abs(name.hashValue)
+        return colors[hash % colors.count]
+    }
+
+    // MARK: - Skeleton Loading
+
+    private var headerSkeletonView: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            // Breadcrumb
+            SkeletonView()
+                .frame(width: 120, height: 10)
+
+            // Number + status
+            HStack(spacing: AppSpacing.sm) {
+                SkeletonView()
+                    .frame(width: 40, height: 18)
+                SkeletonView()
+                    .frame(width: 55, height: 20)
+                    .clipShape(Capsule())
+                Spacer()
+                SkeletonView()
+                    .frame(width: 30, height: 30)
+                    .clipShape(Circle())
+            }
+
+            // Title
+            SkeletonView()
+                .frame(height: 20)
+                .frame(maxWidth: 220)
+
+            Divider()
+
+            // Metadata rows
+            ForEach(0..<3, id: \.self) { _ in
+                HStack {
+                    SkeletonView()
+                        .frame(width: 16, height: 16)
+                        .clipShape(Circle())
+                    SkeletonView()
+                        .frame(width: 70, height: 12)
+                    Spacer()
+                    SkeletonView()
+                        .frame(width: 90, height: 12)
+                }
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusLarge)
+        )
+    }
+
+    private var reviewsSkeletonView: some View {
+        VStack(spacing: AppSpacing.sm) {
+            ForEach(0..<2, id: \.self) { _ in
+                HStack(spacing: AppSpacing.sm) {
+                    SkeletonView()
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
+                    VStack(alignment: .leading, spacing: 4) {
+                        SkeletonView()
+                            .frame(width: 80, height: 14)
+                        SkeletonView()
+                            .frame(width: 50, height: 10)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+        )
+    }
+
+    private var commentsSkeletonView: some View {
+        VStack(spacing: AppSpacing.sm) {
+            ForEach(0..<2, id: \.self) { _ in
+                HStack(spacing: AppSpacing.sm) {
+                    SkeletonView()
+                        .frame(width: 30, height: 30)
+                        .clipShape(Circle())
+
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        SkeletonView()
+                            .frame(width: 80, height: 12)
+                        SkeletonView()
+                            .frame(height: 14)
+                        SkeletonView()
+                            .frame(width: 160, height: 14)
+                    }
+                }
+                .padding(AppSpacing.md)
+                .background(
+                    .ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+                )
+            }
+        }
+    }
+
+    private var diffSkeletonView: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            // Summary bar skeleton
+            HStack(spacing: AppSpacing.md) {
+                SkeletonView()
+                    .frame(width: 90, height: 24)
+                    .clipShape(Capsule())
+                SkeletonView()
+                    .frame(width: 90, height: 24)
+                    .clipShape(Capsule())
+                Spacer()
+            }
+            .padding()
+            .background(
+                .ultraThinMaterial,
+                in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+            )
+
+            // Change item skeletons
+            ForEach(0..<2, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                    HStack {
+                        SkeletonView()
+                            .frame(width: 20, height: 20)
+                        SkeletonView()
+                            .frame(width: 140, height: 16)
+                        Spacer()
+                        SkeletonView()
+                            .frame(width: 70, height: 20)
+                            .clipShape(Capsule())
+                    }
+                    SkeletonView()
+                        .frame(height: 12)
+                        .frame(maxWidth: 200)
+                }
+                .padding()
+                .background(
+                    .ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium)
+                )
+            }
+        }
+    }
+
     // MARK: - Diff Section
 
     @ViewBuilder
     private var diffSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack {
-                Label("Changes", systemImage: "doc.text.magnifyingglass")
-                    .font(AppTypography.headlineMedium)
-                    .fontWeight(.semibold)
+            Label("Changes", systemImage: "doc.text.magnifyingglass")
+                .font(AppTypography.headlineMedium)
+                .fontWeight(.semibold)
 
-                Spacer()
-
-                if viewModel.isLoadingDiff {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            }
-
-            if let diff = viewModel.diff {
+            if !viewModel.hasLoadedDiff {
+                diffSkeletonView
+            } else if let diff = viewModel.diff {
                 if diff.hasChanges {
                     // Summary
                     HStack(spacing: AppSpacing.md) {
@@ -973,6 +1468,69 @@ private struct DiffContentBlock: View {
     }
 }
 
+// MARK: - Alerts Modifier
+
+private struct ChangeRequestAlertsModifier: ViewModifier {
+    @Bindable var viewModel: ChangeRequestDetailViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Merge Change Request?", isPresented: $viewModel.showMergeConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Merge", role: .destructive) {
+                    Task { await viewModel.merge() }
+                }
+            } message: {
+                Text("This will merge all changes into the main content. This action cannot be undone.")
+            }
+            .alert("Archive Change Request?", isPresented: $viewModel.showArchiveConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Archive", role: .destructive) {
+                    Task { await viewModel.archive() }
+                }
+            } message: {
+                Text("This will archive the change request. You can reopen it later if needed.")
+            }
+            .alert("Approve Change Request?", isPresented: $viewModel.showApproveConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Approve") {
+                    Task { await viewModel.approve() }
+                }
+            } message: {
+                Text("This will approve the change request.")
+            }
+            .alert("Request Changes?", isPresented: $viewModel.showRequestChangesConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Request Changes", role: .destructive) {
+                    Task { await viewModel.requestChanges() }
+                }
+            } message: {
+                Text("This will request changes on the change request.")
+            }
+            .alert("Delete?", isPresented: $viewModel.showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    viewModel.deletingCommentId = nil
+                    viewModel.deletingReplyCommentId = nil
+                    viewModel.deletingReplyId = nil
+                }
+                Button("Delete", role: .destructive) {
+                    Task { await viewModel.confirmDelete() }
+                }
+            } message: {
+                Text("This action cannot be undone.")
+            }
+            .alert("Error", isPresented: .constant(viewModel.hasError)) {
+                Button("OK") {
+                    viewModel.clearError()
+                }
+            } message: {
+                if let message = viewModel.errorMessage {
+                    Text(message)
+                }
+            }
+    }
+}
+
 // MARK: - Preview
 
 #Preview("Change Request Detail") {
@@ -980,7 +1538,8 @@ private struct DiffContentBlock: View {
         ChangeRequestDetailView(
             spaceId: "preview-space",
             changeRequestId: "preview-cr",
-            changeRequestRepository: DependencyContainer.shared.changeRequestRepository
+            changeRequestRepository: DependencyContainer.shared.changeRequestRepository,
+            spaceRepository: DependencyContainer.shared.spaceRepository
         )
     }
 }

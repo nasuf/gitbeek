@@ -183,6 +183,129 @@ struct RequestedReviewersListDTO: Codable, Sendable {
     let items: [RequestedReviewerDTO]
 }
 
+// MARK: - Change Request Comment DTOs
+
+/// Slate document body structure from GitBook API
+struct CommentBodyDTO: Codable, Equatable, Sendable {
+    let document: SlateDocumentDTO?
+
+    struct SlateDocumentDTO: Codable, Equatable, Sendable {
+        let nodes: [SlateNodeDTO]?
+    }
+
+    struct SlateNodeDTO: Codable, Equatable, Sendable {
+        let object: String?  // "block", "inline", "text"
+        let type: String?    // "paragraph", etc.
+        let nodes: [SlateNodeDTO]?
+        let leaves: [SlateLeafDTO]?
+        let text: String?
+    }
+
+    struct SlateLeafDTO: Codable, Equatable, Sendable {
+        let object: String?
+        let text: String?
+    }
+
+    /// Recursively extract plain text from the Slate document
+    var plainText: String {
+        guard let nodes = document?.nodes else { return "" }
+        return nodes.map { extractText(from: $0) }.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func extractText(from node: SlateNodeDTO) -> String {
+        if let text = node.text { return text }
+        if let leaves = node.leaves { return leaves.compactMap { $0.text }.joined() }
+        if let children = node.nodes { return children.map { extractText(from: $0) }.joined() }
+        return ""
+    }
+}
+
+struct CommentPermissionsDTO: Codable, Equatable, Sendable {
+    let edit: Bool?
+    let delete: Bool?
+    let reply: Bool?
+}
+
+struct CommentDTO: Codable, Equatable, Sendable, Identifiable {
+    let id: String
+    let postedAt: Date?
+    let editedAt: Date?
+    let postedBy: UserReferenceDTO?
+    let replyCount: Int
+    let body: CommentBodyDTO?
+    let permissions: CommentPermissionsDTO?
+    let status: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, postedAt, editedAt, postedBy, replies, body, permissions, status
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        postedAt = try container.decodeIfPresent(Date.self, forKey: .postedAt)
+        editedAt = try container.decodeIfPresent(Date.self, forKey: .editedAt)
+        postedBy = try container.decodeIfPresent(UserReferenceDTO.self, forKey: .postedBy)
+        body = try container.decodeIfPresent(CommentBodyDTO.self, forKey: .body)
+        permissions = try container.decodeIfPresent(CommentPermissionsDTO.self, forKey: .permissions)
+        status = try container.decodeIfPresent(String.self, forKey: .status)
+
+        // "replies" can be a number (create response) or an object with "count" (list response)
+        if let count = try? container.decode(Int.self, forKey: .replies) {
+            replyCount = count
+        } else if let obj = try? container.decode(RepliesObject.self, forKey: .replies) {
+            replyCount = obj.count ?? 0
+        } else {
+            replyCount = 0
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(postedAt, forKey: .postedAt)
+        try container.encodeIfPresent(editedAt, forKey: .editedAt)
+        try container.encodeIfPresent(postedBy, forKey: .postedBy)
+        try container.encode(replyCount, forKey: .replies)
+        try container.encodeIfPresent(body, forKey: .body)
+        try container.encodeIfPresent(permissions, forKey: .permissions)
+        try container.encodeIfPresent(status, forKey: .status)
+    }
+
+    private struct RepliesObject: Codable {
+        let count: Int?
+    }
+}
+
+struct CommentsListDTO: Codable, Sendable {
+    let items: [CommentDTO]
+}
+
+struct CommentReplyDTO: Codable, Equatable, Sendable, Identifiable {
+    let id: String
+    let postedAt: Date?
+    let postedBy: UserReferenceDTO?
+    let body: CommentBodyDTO?
+    let permissions: CommentPermissionsDTO?
+}
+
+struct CommentRepliesListDTO: Codable, Sendable {
+    let count: Int?
+    let items: [CommentReplyDTO]
+}
+
+struct CommentRequestDTO: Codable, Sendable {
+    let body: CommentBodyMarkdownDTO
+
+    struct CommentBodyMarkdownDTO: Codable, Sendable {
+        let markdown: String
+    }
+
+    init(markdown: String) {
+        self.body = CommentBodyMarkdownDTO(markdown: markdown)
+    }
+}
+
 /// Search result
 struct SearchResultDTO: Codable, Equatable, Sendable {
     let object: String  // "search-result"

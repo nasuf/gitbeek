@@ -242,6 +242,68 @@ struct ChangeRequestDiff: Equatable, Sendable {
     }
 }
 
+// MARK: - Comment Entities
+
+struct CommentPermissions: Equatable, Sendable {
+    let canEdit: Bool
+    let canDelete: Bool
+    let canReply: Bool
+}
+
+struct Comment: Identifiable, Equatable, Sendable {
+    let id: String
+    let body: String
+    let postedAt: Date?
+    let editedAt: Date?
+    let postedBy: UserReference?
+    let replyCount: Int
+    let permissions: CommentPermissions
+    let status: String?
+}
+
+struct CommentReply: Identifiable, Equatable, Sendable {
+    let id: String
+    let body: String
+    let postedAt: Date?
+    let postedBy: UserReference?
+    let permissions: CommentPermissions
+}
+
+extension Comment {
+    static func from(dto: CommentDTO) -> Comment {
+        Comment(
+            id: dto.id,
+            body: dto.body?.plainText ?? "",
+            postedAt: dto.postedAt,
+            editedAt: dto.editedAt,
+            postedBy: dto.postedBy.map { UserReference.from(dto: $0) },
+            replyCount: dto.replyCount,
+            permissions: CommentPermissions(
+                canEdit: dto.permissions?.edit ?? false,
+                canDelete: dto.permissions?.delete ?? false,
+                canReply: dto.permissions?.reply ?? false
+            ),
+            status: dto.status
+        )
+    }
+}
+
+extension CommentReply {
+    static func from(dto: CommentReplyDTO) -> CommentReply {
+        CommentReply(
+            id: dto.id,
+            body: dto.body?.plainText ?? "",
+            postedAt: dto.postedAt,
+            postedBy: dto.postedBy.map { UserReference.from(dto: $0) },
+            permissions: CommentPermissions(
+                canEdit: dto.permissions?.edit ?? false,
+                canDelete: dto.permissions?.delete ?? false,
+                canReply: dto.permissions?.reply ?? false
+            )
+        )
+    }
+}
+
 // MARK: - DTO Mapping
 
 extension ChangeRequest {

@@ -87,4 +87,30 @@ protocol ChangeRequestRepository: Sendable {
 
     /// List requested reviewers for a change request
     func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference]
+
+    // MARK: - Comments
+
+    /// List comments on a change request
+    func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment]
+
+    /// Create a comment on a change request
+    func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment
+
+    /// Update a comment
+    func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment
+
+    /// Delete a comment
+    func deleteComment(spaceId: String, changeRequestId: String, commentId: String) async throws
+
+    /// List replies to a comment
+    func listReplies(spaceId: String, changeRequestId: String, commentId: String) async throws -> [CommentReply]
+
+    /// Create a reply to a comment
+    func createReply(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> CommentReply
+
+    /// Update a reply
+    func updateReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String, markdown: String) async throws -> CommentReply
+
+    /// Delete a reply
+    func deleteReply(spaceId: String, changeRequestId: String, commentId: String, replyId: String) async throws
 }
