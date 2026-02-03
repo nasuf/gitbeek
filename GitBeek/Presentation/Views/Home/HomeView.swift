@@ -149,7 +149,7 @@ struct HomeView: View {
                     icon: "plus.circle",
                     color: AppColors.success
                 ) {
-                    guard let orgId = profileViewModel.selectedOrganization?.id else {
+                    guard profileViewModel.selectedOrganization?.id != nil else {
                         #if DEBUG
                         print("[HomeView] Cannot create space: No organization selected")
                         #endif
@@ -178,6 +178,10 @@ struct HomeView: View {
 
     // MARK: - Recent Spaces
 
+    private var recentSpaces: [RecentSpace] {
+        RecentSpacesManager.shared.getRecentSpaces(organizationId: profileViewModel.selectedOrganization?.id)
+    }
+
     private var recentSpacesSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
@@ -200,37 +204,37 @@ struct HomeView: View {
             }
             .padding(.horizontal, AppSpacing.sm)
 
-            // Placeholder for recent spaces
-            VStack(spacing: AppSpacing.sm) {
-                ForEach(0..<3) { _ in
-                    HStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.quaternary)
-                            .frame(width: 40, height: 40)
+            if recentSpaces.isEmpty {
+                // Empty state
+                VStack(spacing: AppSpacing.md) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.tertiary)
 
-                        VStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(.quaternary)
-                                .frame(width: 150, height: 16)
+                    Text("No recent spaces")
+                        .font(AppTypography.bodyMedium)
+                        .foregroundStyle(.secondary)
 
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(.quaternary)
-                                .frame(width: 100, height: 12)
+                    Text("Spaces will appear here once you start browsing")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.xl)
+            } else {
+                // Recent spaces list
+                VStack(spacing: AppSpacing.sm) {
+                    ForEach(recentSpaces.prefix(5)) { space in
+                        Button {
+                            router.navigate(to: .spaceDetail(spaceId: space.id))
+                        } label: {
+                            RecentSpaceRow(space: space)
                         }
-
-                        Spacer()
+                        .buttonStyle(.plain)
                     }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: AppSpacing.sm))
                 }
             }
-
-            Text("Spaces will appear here once you start browsing")
-                .font(AppTypography.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.top, AppSpacing.sm)
         }
     }
 
@@ -321,4 +325,62 @@ private actor PreviewMockOrganizationRepository: OrganizationRepository {
     func listMembers(organizationId: String) async throws -> [UserReference] { [] }
     func getCachedOrganizations() async -> [Organization] { [] }
     func clearCache() async {}
+}
+
+// MARK: - Recent Space Row
+
+private struct RecentSpaceRow: View {
+    let space: RecentSpace
+
+    var body: some View {
+        HStack(spacing: AppSpacing.md) {
+            // Space icon
+            Group {
+                if let emoji = space.emoji {
+                    Text(emoji)
+                        .font(.system(size: 24))
+                } else {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(AppColors.primaryFallback)
+                }
+            }
+            .frame(width: 40, height: 40)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.ultraThinMaterial)
+            )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(space.title)
+                    .font(AppTypography.bodyMedium)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                HStack(spacing: 4) {
+                    Image(systemName: space.visibilityIcon)
+                        .font(.caption2)
+                    Text(relativeTime(from: space.lastVisited))
+                        .font(AppTypography.caption)
+                }
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusMedium, style: .continuous))
+    }
+
+    private func relativeTime(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
 }

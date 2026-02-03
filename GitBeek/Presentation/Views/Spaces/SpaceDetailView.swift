@@ -12,17 +12,21 @@ struct SpaceDetailView: View {
     // MARK: - Environment
 
     @Environment(AppRouter.self) private var router
+    @Environment(\.dismiss) private var dismiss
 
     // MARK: - Properties
 
     let spaceId: String
+    let spaceRepository: SpaceRepository
     @State private var viewModel: SpaceDetailViewModel
     @State private var showSettings = false
+    @State private var collections: [Collection] = []
 
     // MARK: - Initialization
 
     init(spaceId: String, spaceRepository: SpaceRepository, pageRepository: PageRepository) {
         self.spaceId = spaceId
+        self.spaceRepository = spaceRepository
         self._viewModel = State(initialValue: SpaceDetailViewModel(
             spaceRepository: spaceRepository,
             pageRepository: pageRepository
@@ -55,18 +59,48 @@ struct SpaceDetailView: View {
         }
         .task {
             await viewModel.loadAll(spaceId: spaceId)
+            // Track space visit for Recent Spaces
+            if let space = viewModel.space {
+                RecentSpacesManager.shared.addRecentSpace(from: space)
+            }
+            // Load collections for Edit Space sheet
+            if let orgId = viewModel.space?.organizationId {
+                do {
+                    collections = try await spaceRepository.getCollections(organizationId: orgId)
+                } catch {
+                    print("Error loading collections: \(error)")
+                }
+            }
         }
         .sheet(isPresented: $showSettings) {
             if let space = viewModel.space {
                 SpaceSettingsView(
                     space: space,
+                    collections: collections,
                     onSave: { title, emoji, visibility in
+                        try await viewModel.updateSpace(
+                            title: title,
+                            emoji: emoji,
+                            visibility: visibility
+                        )
+                    },
+                    onMove: { parentId in
                         Task {
-                            try await viewModel.updateSpace(
-                                title: title,
-                                emoji: emoji,
-                                visibility: visibility
-                            )
+                            do {
+                                try await spaceRepository.moveSpace(id: spaceId, parentId: parentId)
+                            } catch {
+                                print("Error moving space: \(error)")
+                            }
+                        }
+                    },
+                    onDelete: {
+                        Task {
+                            do {
+                                try await spaceRepository.deleteSpace(id: spaceId)
+                                dismiss()
+                            } catch {
+                                print("Error deleting space: \(error)")
+                            }
                         }
                     }
                 )

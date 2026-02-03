@@ -172,6 +172,14 @@ struct SpaceListView: View {
                                 await viewModel.renameSpace(id: space.id, title: title)
                             }
                         },
+                        onUpdateSpace: { space, title, emoji, visibility in
+                            try await viewModel.updateSpace(
+                                id: space.id,
+                                title: title,
+                                emoji: emoji,
+                                visibility: visibility
+                            )
+                        },
                         onMoveCollection: { collectionId, parentId in
                             Task {
                                 await viewModel.moveCollection(id: collectionId, toCollectionId: parentId)
@@ -224,6 +232,14 @@ struct SpaceListView: View {
                             Task {
                                 await viewModel.renameSpace(id: space.id, title: title)
                             }
+                        },
+                        onUpdateSpace: { title, emoji, visibility in
+                            try await updateSpace(
+                                id: space.id,
+                                title: title,
+                                emoji: emoji,
+                                visibility: visibility
+                            )
                         }
                     )
                 }
@@ -280,6 +296,14 @@ struct SpaceListView: View {
                         Task {
                             await viewModel.renameSpace(id: space.id, title: title)
                         }
+                    },
+                    onUpdateSpace: { title, emoji, visibility in
+                        try await updateSpace(
+                            id: space.id,
+                            title: title,
+                            emoji: emoji,
+                            visibility: visibility
+                        )
                     }
                 )
             }
@@ -350,5 +374,21 @@ struct SpaceListView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.huge)
+    }
+
+    // MARK: - Helper Functions
+
+    private func updateSpace(
+        id: String,
+        title: String?,
+        emoji: String?,
+        visibility: Space.Visibility?
+    ) async throws {
+        try await viewModel.updateSpace(
+            id: id,
+            title: title,
+            emoji: emoji,
+            visibility: visibility
+        )
     }
 }

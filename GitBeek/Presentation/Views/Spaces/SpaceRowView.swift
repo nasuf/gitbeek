@@ -17,9 +17,11 @@ struct SpaceRowView: View {
     let onDelete: () -> Void
     let onMove: (String?) -> Void
     let onRename: (String) -> Void
+    let onUpdateSpace: (String?, String?, Space.Visibility?) async throws -> Void
 
     @State private var showRenameAlert = false
     @State private var showDeleteAlert = false
+    @State private var showEditSheet = false
     @State private var renameText = ""
 
     // MARK: - Body
@@ -66,7 +68,17 @@ struct SpaceRowView: View {
                     renameText = space.title
                     showRenameAlert = true
                 },
-                onDelete: { showDeleteAlert = true }
+                onDelete: { showDeleteAlert = true },
+                onMoreOptions: { showEditSheet = true }
+            )
+        }
+        .sheet(isPresented: $showEditSheet) {
+            SpaceSettingsView(
+                space: space,
+                collections: collections,
+                onSave: onUpdateSpace,
+                onMove: onMove,
+                onDelete: onDelete
             )
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -153,6 +165,7 @@ struct SpaceContextMenu: View {
     let onMove: (String?) -> Void
     let onRename: () -> Void
     let onDelete: () -> Void
+    var onMoreOptions: (() -> Void)? = nil
 
     var body: some View {
         Menu {
@@ -213,6 +226,16 @@ struct SpaceContextMenu: View {
             Label("Copy", systemImage: "doc.on.doc")
         }
 
+        if let onMoreOptions {
+            Divider()
+
+            Button {
+                onMoreOptions()
+            } label: {
+                Label("More Options...", systemImage: "ellipsis.circle")
+            }
+        }
+
         Divider()
 
         Button(role: .destructive) {
@@ -246,7 +269,8 @@ struct SpaceContextMenu: View {
             onTap: {},
             onDelete: {},
             onMove: { _ in },
-            onRename: { _ in }
+            onRename: { _ in },
+            onUpdateSpace: { _, _, _ in }
         )
     }
     .padding()

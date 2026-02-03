@@ -19,6 +19,7 @@ struct CollectionRowView: View {
     let onDelete: (Space) -> Void
     let onMoveSpace: (Space, String?) -> Void
     let onRenameSpace: (Space, String) -> Void
+    let onUpdateSpace: ((Space, String?, String?, Space.Visibility?) async throws -> Void)?
     let onMoveCollection: (String, String?) -> Void   // (collectionId, targetParentId)
     let onRenameCollection: (String, String) -> Void  // (collectionId, newTitle)
     let onDeleteCollection: (String) -> Void           // (collectionId)
@@ -224,6 +225,7 @@ struct CollectionRowView: View {
                         onDelete: onDelete,
                         onMoveSpace: onMoveSpace,
                         onRenameSpace: onRenameSpace,
+                        onUpdateSpace: onUpdateSpace,
                         onMoveCollection: onMoveCollection,
                         onRenameCollection: onRenameCollection,
                         onDeleteCollection: onDeleteCollection,
@@ -239,7 +241,10 @@ struct CollectionRowView: View {
                         onTap: { onSpaceTap(space) },
                         onDelete: { onDelete(space) },
                         onMove: { parentId in onMoveSpace(space, parentId) },
-                        onRename: { title in onRenameSpace(space, title) }
+                        onRename: { title in onRenameSpace(space, title) },
+                        onUpdateSpace: onUpdateSpace != nil ? { title, emoji, visibility in
+                            try await onUpdateSpace?(space, title, emoji, visibility)
+                        } : nil
                     )
                 }
             }
@@ -257,9 +262,11 @@ private struct ChildSpaceRowView: View {
     let onDelete: () -> Void
     let onMove: (String?) -> Void
     let onRename: (String) -> Void
+    var onUpdateSpace: ((String?, String?, Space.Visibility?) async throws -> Void)?
 
     @State private var showRenameAlert = false
     @State private var showDeleteAlert = false
+    @State private var showEditSheet = false
     @State private var renameText = ""
 
     var body: some View {
@@ -308,8 +315,20 @@ private struct ChildSpaceRowView: View {
                     renameText = space.title
                     showRenameAlert = true
                 },
-                onDelete: { showDeleteAlert = true }
+                onDelete: { showDeleteAlert = true },
+                onMoreOptions: onUpdateSpace != nil ? { showEditSheet = true } : nil
             )
+        }
+        .sheet(isPresented: $showEditSheet) {
+            if let onUpdateSpace {
+                SpaceSettingsView(
+                    space: space,
+                    collections: collections,
+                    onSave: onUpdateSpace,
+                    onMove: onMove,
+                    onDelete: onDelete
+                )
+            }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) {
@@ -382,6 +401,7 @@ private struct ChildSpaceRowView: View {
             onDelete: { _ in },
             onMoveSpace: { _, _ in },
             onRenameSpace: { _, _ in },
+            onUpdateSpace: nil,
             onMoveCollection: { _, _ in },
             onRenameCollection: { _, _ in },
             onDeleteCollection: { _ in }

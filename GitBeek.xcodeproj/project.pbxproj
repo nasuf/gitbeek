@@ -3,13 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		03C5C6E83F77F2DD6D6EA5F5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F3A69D20658B093494BEFB /* APIClient.swift */; };
 		04726F8F840562E494D9D2E9 /* RecentPagesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CB1F148DA28C7E5FDAB937 /* RecentPagesManager.swift */; };
 		04DCA395FDB64673C7D67F89 /* AppSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5984B945BBB5D420C23FBD /* AppSpacing.swift */; };
+		086AE89818377D1869886D79 /* RecentSpacesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC5FB8160F6544290204D28 /* RecentSpacesManager.swift */; };
 		08CB952C53ACB4D6ED699290 /* GlassAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C90A40046049C9E170A6B98 /* GlassAnimations.swift */; };
 		0C084C9B931E5DEB8B08F75D /* TokenResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6438FFB85274DA5A3994FDB3 /* TokenResponse.swift */; };
 		0EC57A432E312D96171037FA /* LiquidGlassFilterBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE1A3C824F2E03ADCA91B7E /* LiquidGlassFilterBar.swift */; };
@@ -93,6 +94,7 @@
 		AB82525AF4CCECDD8CCB3CC7 /* GitBookAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9876D50F6E1325B95DED673C /* GitBookAPIService.swift */; };
 		ADCBC3A5B9A535D8C3FF401D /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6A46032DD4E285090F5A5C /* CacheManager.swift */; };
 		AED90E292BE0E4C9CA5A402D /* BreadcrumbTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C269DD8175CBD2673066BB5D /* BreadcrumbTests.swift */; };
+		AFE1C529E8BB276FED0A82E5 /* RecentSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441DD422762D4066AF0D0CF5 /* RecentSpace.swift */; };
 		B0D65563A15827A0564CCFFE /* String+Emoji.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2632DDD11288333386A2D974 /* String+Emoji.swift */; };
 		B2462A21575623ED7D644C0F /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFAD73E2942AA526CCA63A42 /* APIEndpoint.swift */; };
 		B2494EBC78E04951277194A4 /* AllChangeRequestsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92CFE7C656C949DA25C0C460 /* AllChangeRequestsViewModel.swift */; };
@@ -159,7 +161,7 @@
 		0913B34B58C48CDD2142853D /* Page.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Page.swift; sourceTree = "<group>"; };
 		0960CF1568FE41A927E1CC7F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		0CB289D0BDCD5A1A0E520BFF /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
-		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManagerTests.swift; sourceTree = "<group>"; };
 		0E7465E8AACBDF5C5BED4621 /* SpaceRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceRepositoryImpl.swift; sourceTree = "<group>"; };
 		113A93C2131FC49F0D67C711 /* OrganizationSearchDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationSearchDTO.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 		3A3D2499F16A231B132BC1D9 /* AllChangeRequestsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllChangeRequestsView.swift; sourceTree = "<group>"; };
 		3E4FEDC3D842848F96E8B5D3 /* ChangeRequestDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeRequestDetailView.swift; sourceTree = "<group>"; };
 		3F31EB588A53EA0DC967E689 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		441DD422762D4066AF0D0CF5 /* RecentSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentSpace.swift; sourceTree = "<group>"; };
 		48F1D6960BFB761D8FD985C6 /* SpaceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceRepository.swift; sourceTree = "<group>"; };
 		49DE3A1A6429FEA0EB959E2E /* AuthRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepository.swift; sourceTree = "<group>"; };
 		4C1F842927B37F4F41EF85E2 /* Organization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Organization.swift; sourceTree = "<group>"; };
@@ -217,6 +220,7 @@
 		76D319E759EB00207BAE5DED /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
 		7763296D290D0C5C31D3F3C4 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
 		77FE61D1DBD89BBFF9595850 /* TabBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBlockView.swift; sourceTree = "<group>"; };
+		7CC5FB8160F6544290204D28 /* RecentSpacesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentSpacesManager.swift; sourceTree = "<group>"; };
 		7F1E9C94E653EBA2498E0681 /* SessionExpiredInterceptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionExpiredInterceptorTests.swift; sourceTree = "<group>"; };
 		8079BA5C354138809087D1B1 /* AuthRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryImpl.swift; sourceTree = "<group>"; };
 		81B6CBB27BA28DA017C34CFE /* RecentPagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentPagesView.swift; sourceTree = "<group>"; };
@@ -402,6 +406,7 @@
 				4C1F842927B37F4F41EF85E2 /* Organization.swift */,
 				0913B34B58C48CDD2142853D /* Page.swift */,
 				2994AF3C824EC9110A0AA433 /* RecentPage.swift */,
+				441DD422762D4066AF0D0CF5 /* RecentSpace.swift */,
 				F039C99F88A7BEF1D476E7CC /* Space.swift */,
 				037AA6350B33763673E99E01 /* User.swift */,
 			);
@@ -553,6 +558,7 @@
 				EE6A46032DD4E285090F5A5C /* CacheManager.swift */,
 				55ADE673CEBAD21E2E6B66D7 /* KeychainManager.swift */,
 				C0CB1F148DA28C7E5FDAB937 /* RecentPagesManager.swift */,
+				7CC5FB8160F6544290204D28 /* RecentSpacesManager.swift */,
 				08B738188C41B3DB65F20C2E /* SwiftDataStore.swift */,
 			);
 			path = Storage;
@@ -841,6 +847,7 @@
 						ProvisioningStyle = Automatic;
 					};
 					63D8A9991F6D8AFC3AF4A5CA = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -864,6 +871,7 @@
 				172100AFCC51349E77BBDE81 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -992,6 +1000,8 @@
 				55B30137658FBD36D00D8596 /* RecentPage.swift in Sources */,
 				04726F8F840562E494D9D2E9 /* RecentPagesManager.swift in Sources */,
 				1A61BCE18FD9EB9610332AF9 /* RecentPagesView.swift in Sources */,
+				AFE1C529E8BB276FED0A82E5 /* RecentSpace.swift in Sources */,
+				086AE89818377D1869886D79 /* RecentSpacesManager.swift in Sources */,
 				59F9E11301C9668EAC939045 /* RetryInterceptor.swift in Sources */,
 				E8E981EC55F78C9C901CC445 /* SearchRepository.swift in Sources */,
 				633643E5DF5F8530931790E1 /* SearchRepositoryImpl.swift in Sources */,
@@ -1147,7 +1157,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = P44Z8JVBHV;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1166,7 +1176,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = P44Z8JVBHV;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

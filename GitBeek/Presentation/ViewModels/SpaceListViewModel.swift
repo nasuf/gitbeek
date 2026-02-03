@@ -361,6 +361,27 @@ final class SpaceListViewModel {
         }
     }
 
+    /// Update space with title, emoji, and visibility
+    func updateSpace(id: String, title: String?, emoji: String?, visibility: Space.Visibility?) async throws {
+        error = nil
+        do {
+            let updated = try await spaceRepository.updateSpace(
+                id: id,
+                title: title,
+                emoji: emoji,
+                visibility: visibility,
+                parentId: nil
+            )
+            if let index = allSpaces.firstIndex(where: { $0.id == id }) {
+                allSpaces[index] = updated
+            }
+            organizeHierarchy()
+        } catch {
+            self.error = error
+            throw error
+        }
+    }
+
     /// Rename collection
     func renameCollection(id: String, title: String) async {
         error = nil
