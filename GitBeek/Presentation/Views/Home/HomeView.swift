@@ -27,21 +27,22 @@ struct HomeView: View {
             get: { router.path },
             set: { router.path = $0 }
         )) {
-            ScrollView {
-                VStack(spacing: AppSpacing.xl) {
-                    // Organization header
-                    organizationHeader
-
-                    // Quick actions
-                    quickActionsSection
-
-                    // Recent spaces (placeholder)
-                    recentSpacesSection
-
-                    // All spaces button
-                    allSpacesButton
+            Group {
+                if recentSpaces.isEmpty {
+                    // Fixed layout when no recent spaces - no scroll
+                    emptyStateLayout
+                } else {
+                    // Scrollable layout when there are recent spaces
+                    ScrollView {
+                        VStack(spacing: AppSpacing.xl) {
+                            organizationHeader
+                            quickActionsSection
+                            recentSpacesSection
+                            allSpacesButton
+                        }
+                        .padding()
+                    }
                 }
-                .padding()
             }
             .navigationTitle("Home")
             .refreshable {
@@ -180,6 +181,60 @@ struct HomeView: View {
 
     private var recentSpaces: [RecentSpace] {
         RecentSpacesManager.shared.getRecentSpaces(organizationId: profileViewModel.selectedOrganization?.id)
+    }
+
+    // MARK: - Empty State Layout
+
+    private var emptyStateLayout: some View {
+        VStack(spacing: 0) {
+            // Top section: org header + quick actions
+            VStack(spacing: AppSpacing.xl) {
+                organizationHeader
+                quickActionsSection
+
+                // Recent Spaces header
+                HStack {
+                    Text("Recent Spaces")
+                        .font(AppTypography.headlineLarge)
+
+                    Spacer()
+
+                    Button("See All") {
+                        guard let orgId = profileViewModel.selectedOrganization?.id else { return }
+                        router.navigate(to: .spaceList(organizationId: orgId))
+                    }
+                    .font(AppTypography.bodyMedium)
+                    .contentShape(Rectangle())
+                }
+                .padding(.horizontal, AppSpacing.sm)
+            }
+            .padding([.horizontal, .top])
+
+            // Middle section: empty state (expands to fill)
+            Spacer()
+
+            VStack(spacing: AppSpacing.md) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.tertiary)
+
+                Text("No recent spaces")
+                    .font(AppTypography.bodyMedium)
+                    .foregroundStyle(.secondary)
+
+                Text("Spaces will appear here once you start browsing")
+                    .font(AppTypography.caption)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal)
+
+            Spacer()
+
+            // Bottom section: View All Spaces button
+            allSpacesButton
+                .padding()
+        }
     }
 
     private var recentSpacesSection: some View {
