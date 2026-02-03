@@ -399,7 +399,8 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
             spaceId: spaceId,
             changeRequestId: changeRequestId,
             changeRequestRepository: repository,
-            spaceRepository: DetailMockSpaceRepository()
+            spaceRepository: DetailMockSpaceRepository(),
+            organizationRepository: DetailMockOrganizationRepository()
         )
         return (vm, repository)
     }
@@ -414,12 +415,15 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         XCTAssertFalse(vm.isLoadingDiff)
         XCTAssertFalse(vm.isMerging)
         XCTAssertNil(vm.error)
-        XCTAssertFalse(vm.didMerge)
-        XCTAssertFalse(vm.didArchive)
         XCTAssertTrue(vm.reviews.isEmpty)
         XCTAssertTrue(vm.requestedReviewers.isEmpty)
         XCTAssertFalse(vm.isLoadingReviews)
         XCTAssertFalse(vm.isSubmittingReview)
+        XCTAssertFalse(vm.isDraft)
+        XCTAssertFalse(vm.isArchived)
+        XCTAssertTrue(vm.orgMembers.isEmpty)
+        XCTAssertFalse(vm.isLoadingMembers)
+        XCTAssertFalse(vm.isRequestingReviewer)
     }
 
     // MARK: - Load
@@ -506,9 +510,9 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         await vm.load()
         await vm.merge()
 
-        XCTAssertTrue(vm.didMerge)
         XCTAssertEqual(vm.changeRequest?.status, .merged)
         XCTAssertFalse(vm.isMerging)
+        XCTAssertNil(vm.error)
     }
 
     func testMergeGuardNotOpen() async {
@@ -519,7 +523,7 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         await vm.load()
         await vm.merge()
 
-        XCTAssertFalse(vm.didMerge, "Should not merge a draft CR")
+        XCTAssertEqual(vm.changeRequest?.status, .draft, "Draft CR should not be merged")
     }
 
     func testMergeError() async {
@@ -531,7 +535,7 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         await vm.load()
         await vm.merge()
 
-        XCTAssertFalse(vm.didMerge)
+        XCTAssertEqual(vm.changeRequest?.status, .open, "Status should remain open on error")
         XCTAssertNotNil(vm.error)
     }
 
@@ -546,8 +550,9 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         await vm.load()
         await vm.archive()
 
-        XCTAssertTrue(vm.didArchive)
         XCTAssertEqual(vm.changeRequest?.status, .archived)
+        XCTAssertTrue(vm.isArchived)
+        XCTAssertNil(vm.error)
     }
 
     func testArchiveGuardNotMerged() async {
@@ -558,7 +563,7 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         await vm.load()
         await vm.archive()
 
-        XCTAssertFalse(vm.didArchive, "Should not archive a merged CR")
+        XCTAssertEqual(vm.changeRequest?.status, .merged, "Should not archive a merged CR")
     }
 
     // MARK: - Load Reviews
@@ -683,6 +688,188 @@ final class ChangeRequestDetailViewModelTests: XCTestCase {
         XCTAssertNil(vm.error)
     }
 
+    // MARK: - isDraft / isArchived
+
+    func testIsDraft() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .draft)
+        let (vm, _) = makeViewModel(repository: repo)
+        await vm.load()
+        XCTAssertTrue(vm.isDraft)
+        XCTAssertFalse(vm.isArchived)
+    }
+
+    func testIsArchived() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .archived)
+        let (vm, _) = makeViewModel(repository: repo)
+        await vm.load()
+        XCTAssertFalse(vm.isDraft)
+        XCTAssertTrue(vm.isArchived)
+    }
+
+    // MARK: - Submit for Review
+
+    func testSubmitForReviewSuccess() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .draft)
+        repo.mockStatusUpdatedChangeRequest = makeChangeRequest(status: .open)
+        let (vm, _) = makeViewModel(repository: repo)
+
+        await vm.load()
+        XCTAssertTrue(vm.isDraft)
+
+        await vm.submitForReview()
+
+        XCTAssertEqual(vm.changeRequest?.status, .open)
+        XCTAssertFalse(vm.isDraft)
+        XCTAssertFalse(vm.isUpdatingStatus)
+        XCTAssertNil(vm.error)
+    }
+
+    func testSubmitForReviewGuardNotDraft() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .open)
+        let (vm, _) = makeViewModel(repository: repo)
+
+        await vm.load()
+        await vm.submitForReview()
+
+        // Should not change since it was already open
+        XCTAssertEqual(vm.changeRequest?.status, .open)
+    }
+
+    // MARK: - Reopen
+
+    func testReopenSuccess() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .archived)
+        repo.mockStatusUpdatedChangeRequest = makeChangeRequest(status: .open)
+        let (vm, _) = makeViewModel(repository: repo)
+
+        await vm.load()
+        XCTAssertTrue(vm.isArchived)
+
+        await vm.reopen()
+
+        XCTAssertEqual(vm.changeRequest?.status, .open)
+        XCTAssertFalse(vm.isArchived)
+        XCTAssertFalse(vm.isUpdatingStatus)
+        XCTAssertNil(vm.error)
+    }
+
+    func testReopenGuardNotArchived() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .open)
+        let (vm, _) = makeViewModel(repository: repo)
+
+        await vm.load()
+        await vm.reopen()
+
+        // Should not change since it was open, not archived
+        XCTAssertEqual(vm.changeRequest?.status, .open)
+    }
+
+    // MARK: - Request Reviewer
+
+    func testRequestReviewerSuccess() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .open)
+        let orgRepo = DetailMockOrganizationRepository()
+        orgRepo.mockMembers = [
+            UserReference(id: "u1", displayName: "Alice", photoURL: nil),
+            UserReference(id: "u2", displayName: "Bob", photoURL: nil)
+        ]
+        let vm = ChangeRequestDetailViewModel(
+            spaceId: "space1",
+            changeRequestId: "cr1",
+            changeRequestRepository: repo,
+            spaceRepository: DetailMockSpaceRepository(),
+            organizationRepository: orgRepo
+        )
+
+        // Load members first (simulating the flow)
+        await vm.load()
+        // Manually trigger loadOrgMembers via UserDefaults fallback
+        UserDefaults.standard.set("org1", forKey: "selectedOrganizationId")
+        await vm.loadOrgMembers()
+
+        XCTAssertEqual(vm.orgMembers.count, 2)
+
+        await vm.requestReviewer(userId: "u1")
+
+        XCTAssertEqual(vm.requestedReviewers.count, 1)
+        XCTAssertEqual(vm.requestedReviewers[0].id, "u1")
+        XCTAssertFalse(vm.isRequestingReviewer)
+        XCTAssertNil(vm.error)
+
+        // Cleanup
+        UserDefaults.standard.removeObject(forKey: "selectedOrganizationId")
+    }
+
+    func testAvailableReviewersExcludesAlreadyRequested() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .open)
+        repo.mockRequestedReviewers = [
+            UserReference(id: "u1", displayName: "Alice", photoURL: nil)
+        ]
+        let orgRepo = DetailMockOrganizationRepository()
+        orgRepo.mockMembers = [
+            UserReference(id: "u1", displayName: "Alice", photoURL: nil),
+            UserReference(id: "u2", displayName: "Bob", photoURL: nil),
+            UserReference(id: "u3", displayName: "Charlie", photoURL: nil)
+        ]
+        let vm = ChangeRequestDetailViewModel(
+            spaceId: "space1",
+            changeRequestId: "cr1",
+            changeRequestRepository: repo,
+            spaceRepository: DetailMockSpaceRepository(),
+            organizationRepository: orgRepo
+        )
+
+        await vm.load()
+        await vm.loadReviews()
+        UserDefaults.standard.set("org1", forKey: "selectedOrganizationId")
+        await vm.loadOrgMembers()
+
+        let available = vm.availableReviewers
+        XCTAssertEqual(available.count, 2)
+        XCTAssertFalse(available.contains { $0.id == "u1" }, "Already requested should be excluded")
+
+        UserDefaults.standard.removeObject(forKey: "selectedOrganizationId")
+    }
+
+    func testAvailableReviewersExcludesAlreadyReviewed() async {
+        let repo = DetailMockChangeRequestRepository()
+        repo.mockChangeRequest = makeChangeRequest(status: .open)
+        repo.mockReviews = [
+            ChangeRequestReview(id: "r1", reviewer: UserReference(id: "u1", displayName: "Alice", photoURL: nil), status: .approved, outdated: false, createdAt: nil)
+        ]
+        let orgRepo = DetailMockOrganizationRepository()
+        orgRepo.mockMembers = [
+            UserReference(id: "u1", displayName: "Alice", photoURL: nil),
+            UserReference(id: "u2", displayName: "Bob", photoURL: nil)
+        ]
+        let vm = ChangeRequestDetailViewModel(
+            spaceId: "space1",
+            changeRequestId: "cr1",
+            changeRequestRepository: repo,
+            spaceRepository: DetailMockSpaceRepository(),
+            organizationRepository: orgRepo
+        )
+
+        await vm.load()
+        await vm.loadReviews()
+        UserDefaults.standard.set("org1", forKey: "selectedOrganizationId")
+        await vm.loadOrgMembers()
+
+        let available = vm.availableReviewers
+        XCTAssertEqual(available.count, 1)
+        XCTAssertEqual(available[0].id, "u2")
+
+        UserDefaults.standard.removeObject(forKey: "selectedOrganizationId")
+    }
+
     // MARK: - Helpers
 
     private func makeChangeRequest(
@@ -713,6 +900,7 @@ final class DetailMockChangeRequestRepository: ChangeRequestRepository, @uncheck
     var mockChangeRequest: ChangeRequest?
     var mockMergedChangeRequest: ChangeRequest?
     var mockArchivedChangeRequest: ChangeRequest?
+    var mockStatusUpdatedChangeRequest: ChangeRequest?
     var mockDiff: ChangeRequestDiff?
     var mockPageContentAtRevision: String?
     var mockReviews: [ChangeRequestReview] = []
@@ -750,6 +938,9 @@ final class DetailMockChangeRequestRepository: ChangeRequestRepository, @uncheck
     }
 
     func updateChangeRequestStatus(spaceId: String, changeRequestId: String, status: ChangeRequestStatus) async throws -> ChangeRequest {
+        // Return appropriate mock based on target status
+        if status == .archived, let cr = mockArchivedChangeRequest { return cr }
+        if let cr = mockStatusUpdatedChangeRequest { return cr }
         if let cr = mockArchivedChangeRequest { return cr }
         throw mockError
     }
@@ -787,6 +978,8 @@ final class DetailMockChangeRequestRepository: ChangeRequestRepository, @uncheck
         return mockRequestedReviewers
     }
 
+    func requestReviewers(spaceId: String, changeRequestId: String, userIds: [String]) async throws {}
+
     func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] { [] }
     func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment { throw mockError }
     func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment { throw mockError }
@@ -813,5 +1006,15 @@ final class DetailMockSpaceRepository: SpaceRepository, @unchecked Sendable {
     func deleteCollection(id: String) async throws {}
     func moveCollection(id: String, parentId: String?) async throws {}
     func getCachedSpaces(organizationId: String) async -> [Space] { [] }
+    func clearCache() async {}
+}
+
+final class DetailMockOrganizationRepository: OrganizationRepository, @unchecked Sendable {
+    var mockMembers: [UserReference] = []
+
+    func getOrganizations() async throws -> [Organization] { [] }
+    func getOrganization(id: String) async throws -> Organization { throw NSError(domain: "test", code: 1) }
+    func listMembers(organizationId: String) async throws -> [UserReference] { mockMembers }
+    func getCachedOrganizations() async -> [Organization] { [] }
     func clearCache() async {}
 }

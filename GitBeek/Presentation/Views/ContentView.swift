@@ -90,6 +90,7 @@ private actor PreviewContentMockUserRepository: UserRepository {
 private actor PreviewContentMockOrganizationRepository: OrganizationRepository {
     func getOrganizations() async throws -> [Organization] { [] }
     func getOrganization(id: String) async throws -> Organization { fatalError() }
+    func listMembers(organizationId: String) async throws -> [UserReference] { [] }
     func getCachedOrganizations() async -> [Organization] { [] }
     func clearCache() async {}
 }

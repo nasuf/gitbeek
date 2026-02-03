@@ -11,7 +11,6 @@ import SDWebImageSwiftUI
 struct ChangeRequestDetailView: View {
     // MARK: - Properties
 
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(AuthViewModel.self) private var authViewModel
     @State private var viewModel: ChangeRequestDetailViewModel
@@ -22,13 +21,15 @@ struct ChangeRequestDetailView: View {
         spaceId: String,
         changeRequestId: String,
         changeRequestRepository: ChangeRequestRepository,
-        spaceRepository: SpaceRepository
+        spaceRepository: SpaceRepository,
+        organizationRepository: OrganizationRepository
     ) {
         let vm = ChangeRequestDetailViewModel(
             spaceId: spaceId,
             changeRequestId: changeRequestId,
             changeRequestRepository: changeRequestRepository,
-            spaceRepository: spaceRepository
+            spaceRepository: spaceRepository,
+            organizationRepository: organizationRepository
         )
         self._viewModel = State(initialValue: vm)
     }
@@ -62,21 +63,10 @@ struct ChangeRequestDetailView: View {
             .task {
                 await viewModel.loadComments()
             }
-            .onChange(of: viewModel.didMerge) { _, didMerge in
-                if didMerge {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        dismiss()
-                    }
-                }
-            }
-            .onChange(of: viewModel.didArchive) { _, didArchive in
-                if didArchive {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        dismiss()
-                    }
-                }
-            }
             .modifier(ChangeRequestAlertsModifier(viewModel: viewModel))
+            .sheet(isPresented: $viewModel.showReviewerPicker) {
+                reviewerPickerSheet
+            }
     }
 
     @ViewBuilder
@@ -123,7 +113,7 @@ struct ChangeRequestDetailView: View {
                         commentsSection
                             .padding(.horizontal)
 
-                        if changeRequest.isActive {
+                        if changeRequest.isActive || changeRequest.status == .archived {
                             actionsSection(changeRequest: changeRequest)
                                 .padding(.horizontal)
                         }
@@ -250,6 +240,54 @@ struct ChangeRequestDetailView: View {
         VStack(spacing: AppSpacing.md) {
             Divider()
 
+            // Draft → Submit for Review (primary action)
+            if viewModel.isDraft {
+                Button {
+                    Task { await viewModel.submitForReview() }
+                } label: {
+                    HStack(spacing: AppSpacing.xs) {
+                        if viewModel.isUpdatingStatus {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "paperplane")
+                        }
+                        Text("Submit for Review")
+                    }
+                    .font(AppTypography.bodySmall)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.sm)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .disabled(viewModel.isUpdatingStatus)
+            }
+
+            // Archived → Reopen
+            if viewModel.isArchived {
+                Button {
+                    Task { await viewModel.reopen() }
+                } label: {
+                    HStack(spacing: AppSpacing.xs) {
+                        if viewModel.isUpdatingStatus {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.uturn.backward")
+                        }
+                        Text("Reopen")
+                    }
+                    .font(AppTypography.bodySmall)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppSpacing.sm)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .disabled(viewModel.isUpdatingStatus)
+            }
+
             HStack(spacing: AppSpacing.md) {
                 if viewModel.canArchive {
                     Button(role: .destructive) {
@@ -310,6 +348,17 @@ struct ChangeRequestDetailView: View {
                     .font(AppTypography.headlineMedium)
                     .fontWeight(.semibold)
                 Spacer()
+
+                if viewModel.changeRequest?.isActive == true {
+                    Button {
+                        viewModel.showReviewerPicker = true
+                        Task { await viewModel.loadOrgMembers() }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             if !viewModel.hasLoadedReviews {
@@ -800,6 +849,60 @@ struct ChangeRequestDetailView: View {
         return colors[hash % colors.count]
     }
 
+    // MARK: - Reviewer Picker
+
+    @ViewBuilder
+    private var reviewerPickerSheet: some View {
+        NavigationStack {
+            Group {
+                if viewModel.isLoadingMembers {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.availableReviewers.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Available Reviewers", systemImage: "person.2.slash")
+                    } description: {
+                        Text("All organization members have already been requested or reviewed.")
+                    }
+                } else {
+                    List(viewModel.availableReviewers, id: \.id) { member in
+                        Button {
+                            Task {
+                                await viewModel.requestReviewer(userId: member.id)
+                                viewModel.showReviewerPicker = false
+                            }
+                        } label: {
+                            HStack(spacing: AppSpacing.sm) {
+                                authorAvatar(user: member)
+
+                                Text(member.displayName)
+                                    .font(AppTypography.bodyMedium)
+                                    .foregroundStyle(.primary)
+
+                                Spacer()
+
+                                if viewModel.isRequestingReviewer {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Request Reviewer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewModel.showReviewerPicker = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
     // MARK: - Skeleton Loading
 
     private var headerSkeletonView: some View {
@@ -1152,12 +1255,14 @@ private struct ChangeRow: View {
                             .padding(.horizontal, AppSpacing.md)
                     }
 
-                    // Move-only indicator
+                    // Move/rename-only indicator
                     if change.isMoveOnly {
                         HStack(spacing: AppSpacing.xs) {
-                            Image(systemName: "arrow.right")
+                            Image(systemName: change.titleChange != nil ? "pencil" : "arrow.right")
                                 .font(.caption2)
-                            Text("This page has been moved without any changes.")
+                            Text(change.titleChange != nil
+                                 ? "This page has been renamed without content changes."
+                                 : "This page has been moved without any changes.")
                                 .font(AppTypography.captionSmall)
                         }
                         .foregroundStyle(.secondary)
@@ -1539,7 +1644,8 @@ private struct ChangeRequestAlertsModifier: ViewModifier {
             spaceId: "preview-space",
             changeRequestId: "preview-cr",
             changeRequestRepository: DependencyContainer.shared.changeRequestRepository,
-            spaceRepository: DependencyContainer.shared.spaceRepository
+            spaceRepository: DependencyContainer.shared.spaceRepository,
+            organizationRepository: DependencyContainer.shared.organizationRepository
         )
     }
 }

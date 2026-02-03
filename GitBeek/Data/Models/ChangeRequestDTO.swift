@@ -183,6 +183,10 @@ struct RequestedReviewersListDTO: Codable, Sendable {
     let items: [RequestedReviewerDTO]
 }
 
+struct RequestReviewersRequestDTO: Codable, Sendable {
+    let users: [String]
+}
+
 // MARK: - Change Request Comment DTOs
 
 /// Slate document body structure from GitBook API

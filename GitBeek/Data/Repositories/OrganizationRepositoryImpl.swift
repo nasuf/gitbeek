@@ -90,6 +90,11 @@ actor OrganizationRepositoryImpl: OrganizationRepository {
         return organizations
     }
 
+    func listMembers(organizationId: String) async throws -> [UserReference] {
+        let dto = try await apiService.listMembers(orgId: organizationId)
+        return dto.items.map { UserReference.from(dto: $0.user) }
+    }
+
     func clearCache() async {
         cachedOrganizations = nil
     }

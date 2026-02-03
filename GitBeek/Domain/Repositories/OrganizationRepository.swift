@@ -15,6 +15,9 @@ protocol OrganizationRepository: Sendable {
     /// Get organization by ID
     func getOrganization(id: String) async throws -> Organization
 
+    /// List members of an organization
+    func listMembers(organizationId: String) async throws -> [UserReference]
+
     /// Get cached organizations
     func getCachedOrganizations() async -> [Organization]
 

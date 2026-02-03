@@ -332,7 +332,7 @@ GitBookiOS/
 - [x] 关闭/归档 Change Request (本地状态同步更新)
 
 #### 5.2 Review Flow
-- [ ] 请求 review (POST /change-requests/{crId}/requested-reviewers，API 支持)
+- [x] 请求 review (POST /change-requests/{crId}/requested-reviewers，API 支持)
 - [x] 批准变更
 - [x] 请求修改
 - [x] 评论与回复 (comments + replies CRUD，API 完整支持)
@@ -417,7 +417,7 @@ GitBookiOS/
 ### Phase 9: Polish & Enhancement
 
 #### 9.1 UI/UX Enhancement
-- [ ] Skeleton loading states (Shimmer effect)
+- [x] Skeleton loading states (Shimmer effect)
 - [ ] 空状态设计 (ContentUnavailableView)
 - [ ] 错误状态设计
 - [ ] Haptic feedback (UIImpactFeedbackGenerator)

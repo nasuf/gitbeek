@@ -133,6 +133,10 @@ final class ChangeRequestRepositoryImpl: ChangeRequestRepository {
         return dto.items.compactMap { $0.user.map { UserReference.from(dto: $0) } }
     }
 
+    func requestReviewers(spaceId: String, changeRequestId: String, userIds: [String]) async throws {
+        try await apiService.requestReviewers(spaceId: spaceId, changeRequestId: changeRequestId, userIds: userIds)
+    }
+
     // MARK: - Comments
 
     func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] {

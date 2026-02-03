@@ -42,8 +42,6 @@ final class ChangeRequestDetailViewModel {
     var showArchiveConfirmation = false
 
     private(set) var isUpdatingStatus = false
-    private(set) var didMerge = false
-    private(set) var didArchive = false
 
     private(set) var reviews: [ChangeRequestReview] = []
     private(set) var requestedReviewers: [UserReference] = []
@@ -74,10 +72,18 @@ final class ChangeRequestDetailViewModel {
     private(set) var space: Space?
     private(set) var collectionName: String?
 
+    // MARK: - Reviewer Picker State
+
+    var showReviewerPicker = false
+    private(set) var orgMembers: [UserReference] = []
+    private(set) var isLoadingMembers = false
+    private(set) var isRequestingReviewer = false
+
     // MARK: - Dependencies
 
     private let changeRequestRepository: ChangeRequestRepository
     private let spaceRepository: SpaceRepository
+    private let organizationRepository: OrganizationRepository
     private let spaceId: String
     private let changeRequestId: String
 
@@ -87,6 +93,8 @@ final class ChangeRequestDetailViewModel {
     var errorMessage: String? { error?.localizedDescription }
     var canMerge: Bool { changeRequest?.canMerge ?? false }
     var canArchive: Bool { changeRequest?.isActive ?? false }
+    var isDraft: Bool { changeRequest?.status == .draft }
+    var isArchived: Bool { changeRequest?.status == .archived }
 
     /// Page titles affected by this CR
     var affectedPageTitles: [String] {
@@ -99,12 +107,14 @@ final class ChangeRequestDetailViewModel {
         spaceId: String,
         changeRequestId: String,
         changeRequestRepository: ChangeRequestRepository,
-        spaceRepository: SpaceRepository
+        spaceRepository: SpaceRepository,
+        organizationRepository: OrganizationRepository
     ) {
         self.spaceId = spaceId
         self.changeRequestId = changeRequestId
         self.changeRequestRepository = changeRequestRepository
         self.spaceRepository = spaceRepository
+        self.organizationRepository = organizationRepository
     }
 
     // MARK: - Actions
@@ -151,6 +161,13 @@ final class ChangeRequestDetailViewModel {
                 spaceId: spaceId,
                 changeRequestId: changeRequestId
             )
+
+            #if DEBUG
+            print("📋 Diff loaded: \(loadedDiff.changes.count) changes")
+            for (i, change) in loadedDiff.changes.enumerated() {
+                print("  [\(i)] type=\(change.type) title=\(change.title) isFile=\(change.isFile) isMoveOnly=\(change.isMoveOnly)")
+            }
+            #endif
 
             // Use revision-based content fetching for accurate diffs across all CR statuses
             let revisionInitial = changeRequest?.revisionInitial
@@ -215,7 +232,6 @@ final class ChangeRequestDetailViewModel {
                 spaceId: spaceId,
                 changeRequestId: changeRequestId
             )
-            didMerge = true
             NotificationCenter.default.post(
                 name: .changeRequestStatusDidChange,
                 object: ChangeRequestStatusChange(changeRequestId: changeRequestId, newStatus: .merged)
@@ -240,7 +256,6 @@ final class ChangeRequestDetailViewModel {
                 changeRequestId: changeRequestId,
                 status: .archived
             )
-            didArchive = true
             NotificationCenter.default.post(
                 name: .changeRequestStatusDidChange,
                 object: ChangeRequestStatusChange(changeRequestId: changeRequestId, newStatus: .archived)
@@ -248,6 +263,54 @@ final class ChangeRequestDetailViewModel {
         } catch {
             self.error = error
             print("Error archiving change request: \(error)")
+        }
+
+        isUpdatingStatus = false
+    }
+
+    func submitForReview() async {
+        guard isDraft else { return }
+
+        isUpdatingStatus = true
+        error = nil
+
+        do {
+            changeRequest = try await changeRequestRepository.updateChangeRequestStatus(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                status: .open
+            )
+            NotificationCenter.default.post(
+                name: .changeRequestStatusDidChange,
+                object: ChangeRequestStatusChange(changeRequestId: changeRequestId, newStatus: .open)
+            )
+        } catch {
+            self.error = error
+            print("Error submitting for review: \(error)")
+        }
+
+        isUpdatingStatus = false
+    }
+
+    func reopen() async {
+        guard isArchived else { return }
+
+        isUpdatingStatus = true
+        error = nil
+
+        do {
+            changeRequest = try await changeRequestRepository.updateChangeRequestStatus(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                status: .open
+            )
+            NotificationCenter.default.post(
+                name: .changeRequestStatusDidChange,
+                object: ChangeRequestStatusChange(changeRequestId: changeRequestId, newStatus: .open)
+            )
+        } catch {
+            self.error = error
+            print("Error reopening change request: \(error)")
         }
 
         isUpdatingStatus = false
@@ -305,6 +368,54 @@ final class ChangeRequestDetailViewModel {
 
     func clearError() {
         error = nil
+    }
+
+    // MARK: - Reviewer Actions
+
+    func loadOrgMembers() async {
+        guard orgMembers.isEmpty else { return }
+
+        // Try space's organizationId first, fall back to persisted selection
+        let orgId = space?.organizationId
+            ?? UserDefaults.standard.string(forKey: "selectedOrganizationId")
+        guard let orgId else { return }
+
+        isLoadingMembers = true
+        do {
+            orgMembers = try await organizationRepository.listMembers(organizationId: orgId)
+        } catch {
+            print("Error loading members: \(error)")
+        }
+        isLoadingMembers = false
+    }
+
+    /// Members available to be requested as reviewers (exclude already requested/reviewed)
+    var availableReviewers: [UserReference] {
+        let existingIds = Set(requestedReviewers.map(\.id))
+            .union(reviews.map { $0.reviewer?.id ?? "" })
+        return orgMembers.filter { !existingIds.contains($0.id) }
+    }
+
+    func requestReviewer(userId: String) async {
+        isRequestingReviewer = true
+        error = nil
+
+        do {
+            try await changeRequestRepository.requestReviewers(
+                spaceId: spaceId,
+                changeRequestId: changeRequestId,
+                userIds: [userId]
+            )
+            // Add to local list
+            if let member = orgMembers.first(where: { $0.id == userId }) {
+                requestedReviewers.append(member)
+            }
+        } catch {
+            self.error = error
+            print("Error requesting reviewer: \(error)")
+        }
+
+        isRequestingReviewer = false
     }
 
     // MARK: - Comment Actions

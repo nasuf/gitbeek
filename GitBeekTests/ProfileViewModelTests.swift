@@ -441,6 +441,8 @@ private final class MockOrganizationRepository: OrganizationRepository, @uncheck
         return org
     }
 
+    func listMembers(organizationId: String) async throws -> [UserReference] { [] }
+
     func getCachedOrganizations() async -> [Organization] {
         cachedOrganizations
     }

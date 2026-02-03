@@ -299,6 +299,13 @@ actor GitBookAPIService {
         try await client.request(GitBookEndpoint.listRequestedReviewers(spaceId: spaceId, changeRequestId: changeRequestId))
     }
 
+    func requestReviewers(spaceId: String, changeRequestId: String, userIds: [String]) async throws {
+        let request = RequestReviewersRequestDTO(users: userIds)
+        try await client.requestVoid(
+            GitBookEndpoint.requestReviewers(spaceId: spaceId, changeRequestId: changeRequestId, request: request)
+        )
+    }
+
     // MARK: - Change Request Comments
 
     /// List comments on a change request

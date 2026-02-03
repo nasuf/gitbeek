@@ -487,6 +487,8 @@ private final class MockChangeRequestRepository: ChangeRequestRepository, @unche
         return []
     }
 
+    func requestReviewers(spaceId: String, changeRequestId: String, userIds: [String]) async throws {}
+
     func listComments(spaceId: String, changeRequestId: String) async throws -> [Comment] { [] }
     func createComment(spaceId: String, changeRequestId: String, markdown: String) async throws -> Comment { throw NSError(domain: "test", code: 1) }
     func updateComment(spaceId: String, changeRequestId: String, commentId: String, markdown: String) async throws -> Comment { throw NSError(domain: "test", code: 1) }
@@ -511,6 +513,8 @@ private final class MockOrganizationRepository: OrganizationRepository, @uncheck
     func getOrganization(id: String) async throws -> Organization {
         throw NSError(domain: "test", code: 1)
     }
+
+    func listMembers(organizationId: String) async throws -> [UserReference] { [] }
 
     func getCachedOrganizations() async -> [Organization] {
         return mockOrganizations

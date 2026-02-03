@@ -131,6 +131,9 @@ enum GitBookEndpoint: APIEndpoint {
     /// List requested reviewers for a change request
     case listRequestedReviewers(spaceId: String, changeRequestId: String)
 
+    /// Request reviewers for a change request
+    case requestReviewers(spaceId: String, changeRequestId: String, request: RequestReviewersRequestDTO)
+
     // MARK: - Change Request Comments
 
     /// List comments on a change request
@@ -250,7 +253,8 @@ enum GitBookEndpoint: APIEndpoint {
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/reviews"
         case .submitChangeRequestReview(let spaceId, let changeRequestId, _):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/reviews"
-        case .listRequestedReviewers(let spaceId, let changeRequestId):
+        case .listRequestedReviewers(let spaceId, let changeRequestId),
+             .requestReviewers(let spaceId, let changeRequestId, _):
             return "/spaces/\(spaceId)/change-requests/\(changeRequestId)/requested-reviewers"
 
         // Comments
@@ -284,7 +288,7 @@ enum GitBookEndpoint: APIEndpoint {
         case .exchangeToken, .refreshToken,
              .createSpace, .createCollection, .createPage, .createChangeRequest,
              .mergeChangeRequest, .restoreSpace,
-             .submitChangeRequestReview,
+             .submitChangeRequestReview, .requestReviewers,
              .moveSpace, .moveCollection,
              .createComment, .createReply:
             return .post
@@ -362,6 +366,8 @@ enum GitBookEndpoint: APIEndpoint {
         case .updateChangeRequest(_, _, let request):
             return request
         case .submitChangeRequestReview(_, _, let request):
+            return request
+        case .requestReviewers(_, _, let request):
             return request
         case .createComment(_, _, let request), .updateComment(_, _, _, let request):
             return request

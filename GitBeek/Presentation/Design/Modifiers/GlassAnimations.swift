@@ -283,29 +283,34 @@ extension AnyTransition {
 
 /// A shimmer effect for loading states
 struct ShimmerModifier: ViewModifier {
-    @State private var phase: CGFloat = 0
+    @State private var phase: CGFloat = -1
 
     func body(content: Content) -> some View {
         content
             .overlay {
                 GeometryReader { geometry in
+                    let width = geometry.size.width
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(0),
-                            Color.white.opacity(0.5),
-                            Color.white.opacity(0)
+                        stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: Color.white.opacity(0.4), location: 0.4),
+                            .init(color: Color.white.opacity(0.6), location: 0.5),
+                            .init(color: Color.white.opacity(0.4), location: 0.6),
+                            .init(color: .clear, location: 1)
                         ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
-                    .frame(width: geometry.size.width * 2)
-                    .offset(x: -geometry.size.width + phase * geometry.size.width * 2)
+                    .frame(width: width * 0.8)
+                    .offset(x: phase * width * 1.5)
+                    .blendMode(.sourceAtop)
                 }
-                .mask(content)
+                .allowsHitTesting(false)
             }
+            .clipped()
             .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 1
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: false)) {
+                    phase = 1.2
                 }
             }
     }

@@ -90,9 +90,9 @@ struct AllChangeRequestsView: View {
     @ViewBuilder
     private var hierarchicalContent: some View {
         LazyVStack(spacing: AppSpacing.md) {
-            // Loading state for current filter
+            // Skeleton loading when current filter has no data yet
             if viewModel.isLoading && viewModel.collectionGroups.isEmpty && viewModel.topLevelSpaceGroups.isEmpty {
-                loadingView
+                skeletonLoadingView
             } else {
                 // Collections with change requests
                 if !viewModel.collectionGroups.isEmpty {
@@ -158,19 +158,59 @@ struct AllChangeRequestsView: View {
         .padding(.vertical, AppSpacing.xl)
     }
 
-    // MARK: - Loading View
+    // MARK: - Skeleton Loading View
 
-    private var loadingView: some View {
+    private var skeletonLoadingView: some View {
         VStack(spacing: AppSpacing.md) {
-            ProgressView()
-                .scaleEffect(1.2)
-
-            Text("Loading change requests...")
-                .font(AppTypography.bodyMedium)
-                .foregroundStyle(.secondary)
+            // Multiple skeleton groups to fill the screen
+            ForEach(0..<3, id: \.self) { _ in
+                spaceGroupSkeletonView
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.xl)
+    }
+
+    private var spaceGroupSkeletonView: some View {
+        VStack(spacing: AppSpacing.sm) {
+            // Space header skeleton
+            HStack(spacing: AppSpacing.md) {
+                // Icon placeholder
+                SkeletonView()
+                    .frame(width: 44, height: 44)
+
+                // Title and subtitle
+                VStack(alignment: .leading, spacing: 4) {
+                    SkeletonView()
+                        .frame(width: 140, height: 18)
+                    SkeletonView()
+                        .frame(width: 100, height: 14)
+                }
+
+                Spacer()
+
+                // Count badge
+                SkeletonView()
+                    .frame(width: 30, height: 24)
+            }
+
+            // CR rows skeleton
+            ForEach(0..<2, id: \.self) { _ in
+                HStack(spacing: AppSpacing.sm) {
+                    SkeletonView()
+                        .frame(width: 50, height: 22)
+                    SkeletonView()
+                        .frame(width: 60, height: 22)
+                    Spacer()
+                    SkeletonView()
+                        .frame(width: 80, height: 16)
+                }
+                .padding(.vertical, AppSpacing.xs)
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: AppSpacing.cornerRadiusLarge, style: .continuous)
+                .fill(.ultraThinMaterial)
+        )
     }
 
 }

@@ -88,6 +88,9 @@ protocol ChangeRequestRepository: Sendable {
     /// List requested reviewers for a change request
     func listRequestedReviewers(spaceId: String, changeRequestId: String) async throws -> [UserReference]
 
+    /// Request reviewers for a change request
+    func requestReviewers(spaceId: String, changeRequestId: String, userIds: [String]) async throws
+
     // MARK: - Comments
 
     /// List comments on a change request
