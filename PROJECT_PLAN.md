@@ -421,6 +421,15 @@ GitBookiOS/
 
 ### Phase 9: Polish & Enhancement
 
+#### 9.0 Export Features
+- [x] PDF 导出功能
+  - [x] 将 Page 渲染为 PDF 文件
+  - [x] 保留 markdown 格式（标题、代码块、表格、图片等）
+  - [x] 分页处理（长文档自动分页）
+  - [x] 分享/保存 PDF (UIActivityViewController)
+  - [x] 代码主题支持（浅色/深色跟随用户设置）
+  - [x] 图片预加载转 Base64（离线 PDF 支持）
+
 #### 9.1 UI/UX Enhancement
 - [x] Skeleton loading states (Shimmer effect)
 - [ ] 空状态设计 (ContentUnavailableView)

@@ -12,6 +12,7 @@ struct PageDetailView: View {
     // MARK: - Environment
 
     @Environment(AppRouter.self) private var router
+    @Environment(\.codeTheme) private var codeTheme
 
     // MARK: - Properties
 
@@ -20,6 +21,7 @@ struct PageDetailView: View {
     @State private var viewModel: PageDetailViewModel
     @State private var isFavorite = false
     @State private var showReadingSettings = false
+    @State private var showPDFExportSheet = false
 
     private let recentPagesManager = RecentPagesManager.shared
 
@@ -72,6 +74,11 @@ struct PageDetailView: View {
         .sheet(isPresented: $showReadingSettings) {
             ReadingSettingsSheet()
         }
+        .sheet(isPresented: $showPDFExportSheet) {
+            if let page = viewModel.page {
+                PDFExportSheet(title: page.displayTitle, markdown: viewModel.markdown, isDarkCodeTheme: codeTheme.isDark)
+            }
+        }
     }
 
     // MARK: - Toolbar
@@ -100,12 +107,13 @@ struct PageDetailView: View {
 
                 Divider()
 
-                // Share
+                // Export PDF
                 Button {
-                    // TODO: Share page
+                    showPDFExportSheet = true
                 } label: {
-                    Label("Share", systemImage: "square.and.arrow.up")
+                    Label("Export PDF", systemImage: "doc.fill")
                 }
+                .disabled(!viewModel.hasMarkdown)
 
                 // Open in browser
                 Button {
