@@ -56,6 +56,12 @@ protocol PageRepository: Sendable {
     /// Get cached content tree for space
     func getCachedContentTree(spaceId: String) async -> [Page]
 
+    /// Get cached page if available (for Stale-While-Revalidate)
+    func getCachedPage(spaceId: String, pageId: String) async -> Page?
+
+    /// Check if page cache is still fresh
+    func isCacheFresh(pageId: String) async -> Bool
+
     /// Clear page cache
     func clearCache() async
 }

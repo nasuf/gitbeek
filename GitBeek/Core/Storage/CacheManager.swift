@@ -6,34 +6,14 @@
 //
 
 import Foundation
-import SwiftUI
+import SDWebImage
 
-/// Cache policy for different types of content
+/// Cache duration constants
 enum CachePolicy: Sendable {
-    /// Always fetch from network, ignore cache
-    case networkOnly
-
-    /// Use cache if available, otherwise fetch
-    case cacheFirst
-
-    /// Fetch from network, update cache
-    case networkFirst
-
-    /// Use cache if fresh, otherwise fetch
-    case cacheIfFresh(maxAge: TimeInterval)
-
     /// Default cache duration in seconds
     static let defaultMaxAge: TimeInterval = 300  // 5 minutes
     static let longMaxAge: TimeInterval = 3600    // 1 hour
     static let shortMaxAge: TimeInterval = 60     // 1 minute
-}
-
-/// Result type for cache operations
-enum CacheResult<T> {
-    case cached(T, Date)      // Cached data with cache time
-    case fetched(T)           // Freshly fetched data
-    case stale(T, Date)       // Stale cached data (network failed)
-    case empty                // No data available
 }
 
 /// Manager for content caching strategies
@@ -167,44 +147,11 @@ final class CacheManager {
         try? fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
     }
 
-    // MARK: - Image Cache
+    // MARK: - Image Cache Key
 
-    /// Cache key for image URL
+    /// Cache key for image URL (used for statistics)
     func imageCacheKey(for url: URL) -> String {
         "image:\(url.absoluteString.hashValue)"
-    }
-
-    /// Save image to cache
-    func saveImage(_ image: UIImage, for url: URL) throws {
-        let key = imageCacheKey(for: url)
-
-        // Save to memory cache
-        saveToMemory(key: key, value: image, cost: Int(image.size.width * image.size.height * 4))
-
-        // Save to file cache
-        if let data = image.pngData() {
-            try saveToFileCache(key: key, data: data)
-        }
-    }
-
-    /// Load image from cache
-    func loadImage(for url: URL) -> UIImage? {
-        let key = imageCacheKey(for: url)
-
-        // Check memory cache first
-        if let (image, _): (UIImage, Date) = getFromMemory(key: key) {
-            return image
-        }
-
-        // Check file cache
-        if let data = loadFromFileCache(key: key),
-           let image = UIImage(data: data) {
-            // Populate memory cache
-            saveToMemory(key: key, value: image, cost: Int(image.size.width * image.size.height * 4))
-            return image
-        }
-
-        return nil
     }
 
     // MARK: - Cache Statistics
@@ -213,12 +160,29 @@ final class CacheManager {
         let memoryCacheCount: Int
         let fileCacheSize: Int64
         let fileCacheCount: Int
+        let imageCacheSize: Int64
+        let imageCacheCount: Int
+        let sdWebImageCacheSize: Int64  // SDWebImage disk cache
+        let swiftDataSize: Int64
+        let organizationCount: Int
+        let spaceCount: Int
+        let pageCount: Int
+
+        var totalSize: Int64 {
+            fileCacheSize + swiftDataSize + sdWebImageCacheSize
+        }
+
+        var totalImageCacheSize: Int64 {
+            imageCacheSize + sdWebImageCacheSize
+        }
     }
 
     /// Get cache statistics
     func getStats() -> CacheStats {
         var fileCacheSize: Int64 = 0
         var fileCacheCount = 0
+        var imageCacheSize: Int64 = 0
+        var imageCacheCount = 0
 
         if let enumerator = fileManager.enumerator(at: cacheDirectory, includingPropertiesForKeys: [.fileSizeKey]) {
             while let url = enumerator.nextObject() as? URL {
@@ -226,15 +190,84 @@ final class CacheManager {
                    let size = attributes.fileSize {
                     fileCacheSize += Int64(size)
                     fileCacheCount += 1
+
+                    // Count image cache separately
+                    if url.lastPathComponent.hasPrefix("image:") {
+                        imageCacheSize += Int64(size)
+                        imageCacheCount += 1
+                    }
                 }
             }
         }
 
+        // Get SDWebImage cache size
+        let sdWebImageSize = getSDWebImageCacheSize()
+
+        // Get SwiftData stats
+        let swiftDataStats = getSwiftDataStats()
+
         return CacheStats(
             memoryCacheCount: 0,  // NSCache doesn't expose count
             fileCacheSize: fileCacheSize,
-            fileCacheCount: fileCacheCount
+            fileCacheCount: fileCacheCount,
+            imageCacheSize: imageCacheSize,
+            imageCacheCount: imageCacheCount,
+            sdWebImageCacheSize: sdWebImageSize,
+            swiftDataSize: swiftDataStats.size,
+            organizationCount: swiftDataStats.organizationCount,
+            spaceCount: swiftDataStats.spaceCount,
+            pageCount: swiftDataStats.pageCount
         )
+    }
+
+    /// Get SDWebImage disk cache size
+    private func getSDWebImageCacheSize() -> Int64 {
+        let cache = SDImageCache.shared
+        return Int64(cache.totalDiskSize())
+    }
+
+    /// Get SwiftData statistics
+    private func getSwiftDataStats() -> (size: Int64, organizationCount: Int, spaceCount: Int, pageCount: Int) {
+        // Get SwiftData file size
+        let applicationSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        var swiftDataSize: Int64 = 0
+
+        // SwiftData stores in Application Support/default.store
+        let storeURL = applicationSupport.appendingPathComponent("default.store")
+        if let enumerator = fileManager.enumerator(at: storeURL, includingPropertiesForKeys: [.fileSizeKey]) {
+            while let url = enumerator.nextObject() as? URL {
+                if let attributes = try? url.resourceValues(forKeys: [.fileSizeKey]),
+                   let size = attributes.fileSize {
+                    swiftDataSize += Int64(size)
+                }
+            }
+        }
+
+        // Also check for SQLite files directly
+        if fileManager.fileExists(atPath: storeURL.path) {
+            if let attributes = try? fileManager.attributesOfItem(atPath: storeURL.path),
+               let size = attributes[.size] as? Int64 {
+                swiftDataSize = max(swiftDataSize, size)
+            }
+        }
+
+        // Get record counts from SwiftDataStore
+        let orgCount = (try? store.fetchOrganizations().count) ?? 0
+        let spaceCount = (try? store.fetchSpaces().count) ?? 0
+        let pageCount = getPageCount()
+
+        return (swiftDataSize, orgCount, spaceCount, pageCount)
+    }
+
+    /// Get total page count
+    private func getPageCount() -> Int {
+        // Get all spaces and sum their pages
+        guard let spaces = try? store.fetchSpaces() else { return 0 }
+        var count = 0
+        for space in spaces {
+            count += (try? store.fetchPages(spaceId: space.id).count) ?? 0
+        }
+        return count
     }
 
     /// Format cache size for display
@@ -242,6 +275,32 @@ final class CacheManager {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
+    }
+
+    // MARK: - Selective Cache Clearing
+
+    /// Clear only image cache (including SDWebImage)
+    func clearImageCache() {
+        // Clear our custom image cache
+        if let enumerator = fileManager.enumerator(at: cacheDirectory, includingPropertiesForKeys: nil) {
+            while let url = enumerator.nextObject() as? URL {
+                if url.lastPathComponent.hasPrefix("image:") {
+                    try? fileManager.removeItem(at: url)
+                }
+            }
+        }
+
+        // Clear SDWebImage cache
+        SDImageCache.shared.clearMemory()
+        SDImageCache.shared.clearDisk(onCompletion: nil)
+
+        // Also clear memory cache images
+        clearMemoryCache()
+    }
+
+    /// Clear only content cache (SwiftData)
+    func clearContentCache() {
+        try? store.clearAllCache()
     }
 
     // MARK: - Cleanup

@@ -287,6 +287,15 @@ private final class MockPageRepository: PageRepository, @unchecked Sendable {
         cachedPages
     }
 
+    func getCachedPage(spaceId: String, pageId: String) async -> Page? {
+        // Return nil by default to simulate no cache (forces network fetch)
+        nil
+    }
+
+    func isCacheFresh(pageId: String) async -> Bool {
+        false
+    }
+
     func clearCache() async {}
 }
 

@@ -595,6 +595,14 @@ private final class MockPageRepositoryForDetail: PageRepository, @unchecked Send
         cachedPages
     }
 
+    func getCachedPage(spaceId: String, pageId: String) async -> Page? {
+        nil
+    }
+
+    func isCacheFresh(pageId: String) async -> Bool {
+        false
+    }
+
     func clearCache() async {}
 }
 

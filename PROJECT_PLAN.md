@@ -339,21 +339,21 @@ GitBookiOS/
 
 ---
 
-### Phase 6: Offline Reading Cache
+### Phase 6: Offline Reading Cache ✅
 
 > **调整**: 由于 API 不支持内容编辑，Phase 6 从"Offline Support"简化为"Offline Reading Cache"，移除所有离线编辑相关功能。
 
 #### 6.1 Content Caching
-- [ ] 缓存空间元数据
-- [ ] 缓存页面内容
-- [ ] 本地缓存图片
-- [ ] 后台同步 (在线时)
+- [x] 缓存空间元数据 (SwiftData 持久化)
+- [x] 缓存页面内容 (Stale-While-Revalidate 策略)
+- [x] 本地缓存图片 (SDWebImage 自动处理)
+- [x] 后台同步 (缓存过期时自动后台刷新)
 
 #### ~~6.2 Offline Editing~~ ❌ 已取消（API 不支持内容编辑）
 
 #### 6.3 Cache Management
-- [ ] 清除缓存选项
-- [ ] 存储使用量显示
+- [x] 清除缓存选项 (见 Phase 8.1)
+- [x] 存储使用量显示 (见 Phase 8.1)
 
 ---
 
@@ -403,7 +403,12 @@ GitBookiOS/
 - [x] 阅读偏好
   - [x] 字体大小 (Small / Default / Large / Extra Large)
   - [x] 代码高亮主题 (9 themes: Xcode, GitHub, Atom One, Dracula, etc.)
-- [ ] 缓存管理
+- [x] 缓存管理
+  - [x] 存储使用量显示 (总量 + 分类: 图片/内容/其他)
+  - [x] 清除所有缓存
+  - [x] 清除图片缓存
+  - [x] 清除内容缓存
+  - [x] 清除过期数据 (>24h)
 
 #### 8.2 About & Support
 - [ ] App 版本信息
@@ -578,7 +583,7 @@ Button("Action") { }
 - [x] Phase 5.1: Change Request management (completed)
 - [x] Phase 5.2: Review Flow (approve/request changes)
 - [ ] Phase 5: 评论系统 + 创建 CR + 请求 review
-- [ ] Phase 6: Offline reading cache
+- [x] Phase 6: Offline reading cache (Stale-While-Revalidate)
 - [x] Phase 7: Search & Discovery (completed)
 
 ### V1.1+

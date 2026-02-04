@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -114,6 +114,7 @@
 		C80DC3D41614292530BA6D6C /* SpaceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F1D6960BFB761D8FD985C6 /* SpaceRepository.swift */; };
 		C89BBD1A43A36FFCC03DF622 /* Phase7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE53FF5BA59E96E0AC31312 /* Phase7Tests.swift */; };
 		CEA1A554CBEB9BC5ED87D025 /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DE3A1A6429FEA0EB959E2E /* AuthRepository.swift */; };
+		CF14E056957C0AC974FB57EF /* CacheManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7837AFA426FDE60F7E63556C /* CacheManagerTests.swift */; };
 		CF7F2D7C8CAF92B0C302533C /* GlassButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD20F172843BFB01FEF4D62 /* GlassButton.swift */; };
 		D069279433FE74D3FB2D223A /* ChangeRequestDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22877EC8365996E698CA010C /* ChangeRequestDetailViewModel.swift */; };
 		D3B39F46056E15F3C1E1CE73 /* CollectionDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ADDFCB7FB6C7FB23DD7348 /* CollectionDTO.swift */; };
@@ -166,7 +167,7 @@
 		0913B34B58C48CDD2142853D /* Page.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Page.swift; sourceTree = "<group>"; };
 		0960CF1568FE41A927E1CC7F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		0CB289D0BDCD5A1A0E520BFF /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
-		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D3E9D2C3BC98A0DA2824EFF /* GitBeek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitBeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManagerTests.swift; sourceTree = "<group>"; };
 		0E7465E8AACBDF5C5BED4621 /* SpaceRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceRepositoryImpl.swift; sourceTree = "<group>"; };
 		113A93C2131FC49F0D67C711 /* OrganizationSearchDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganizationSearchDTO.swift; sourceTree = "<group>"; };
@@ -226,6 +227,7 @@
 		76D319E759EB00207BAE5DED /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
 		7763296D290D0C5C31D3F3C4 /* AppTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypography.swift; sourceTree = "<group>"; };
 		77FE61D1DBD89BBFF9595850 /* TabBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBlockView.swift; sourceTree = "<group>"; };
+		7837AFA426FDE60F7E63556C /* CacheManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManagerTests.swift; sourceTree = "<group>"; };
 		7CC5FB8160F6544290204D28 /* RecentSpacesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentSpacesManager.swift; sourceTree = "<group>"; };
 		7F1E9C94E653EBA2498E0681 /* SessionExpiredInterceptorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionExpiredInterceptorTests.swift; sourceTree = "<group>"; };
 		8079BA5C354138809087D1B1 /* AuthRepositoryImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRepositoryImpl.swift; sourceTree = "<group>"; };
@@ -366,6 +368,7 @@
 				1EDBCBB578A9A27735742E86 /* APIClientTests.swift */,
 				E4D5DDAE261A8A59B0C36C69 /* AuthViewModelTests.swift */,
 				C269DD8175CBD2673066BB5D /* BreadcrumbTests.swift */,
+				7837AFA426FDE60F7E63556C /* CacheManagerTests.swift */,
 				DC1BDD64DE8137F6F72B496D /* ChangeRequestDetailTests.swift */,
 				FDDB60F1CC7AD74EC5A957AF /* GitBeekTests.swift */,
 				0D99181BEA30BAFFC3637D9B /* KeychainManagerTests.swift */,
@@ -867,7 +870,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					63D8A9991F6D8AFC3AF4A5CA = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -891,7 +893,6 @@
 				172100AFCC51349E77BBDE81 /* XCRemoteSwiftPackageReference "swift-dependencies" */,
 				938F025E3E149DC0A89B861B /* XCRemoteSwiftPackageReference "swift-markdown" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -921,6 +922,7 @@
 				1AD5D45BB3A6890BE6601FB0 /* AllChangeRequestsViewModelTests.swift in Sources */,
 				46960DA36C1FE0B41DD85EDD /* AuthViewModelTests.swift in Sources */,
 				AED90E292BE0E4C9CA5A402D /* BreadcrumbTests.swift in Sources */,
+				CF14E056957C0AC974FB57EF /* CacheManagerTests.swift in Sources */,
 				3D0572607DF2B6E341322083 /* ChangeRequestDetailTests.swift in Sources */,
 				F5BF1D35E171B8840353F442 /* GitBeekTests.swift in Sources */,
 				E86ACB4BFCF453E8E94B7E41 /* KeychainManagerTests.swift in Sources */,
@@ -1181,7 +1183,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P44Z8JVBHV;
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1200,7 +1202,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = P44Z8JVBHV;
 				INFOPLIST_FILE = GitBeek/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

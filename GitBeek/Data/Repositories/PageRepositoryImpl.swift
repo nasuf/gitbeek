@@ -2,12 +2,13 @@
 //  PageRepositoryImpl.swift
 //  GitBeek
 //
-//  Implementation of PageRepository
+//  Implementation of PageRepository with Stale-While-Revalidate caching
 //
 
 import Foundation
 
 /// Implementation of page repository with dual-layer caching
+/// Uses Stale-While-Revalidate strategy for optimal UX
 actor PageRepositoryImpl: PageRepository {
     // MARK: - Dependencies
 
@@ -17,7 +18,12 @@ actor PageRepositoryImpl: PageRepository {
     // MARK: - Cache
 
     private var cachedContentTrees: [String: [Page]] = [:]  // spaceId -> pages
-    private var cachedPages: [String: Page] = [:]  // pageId -> page with content
+    private var cachedPages: [String: (page: Page, timestamp: Date)] = [:]  // pageId -> (page, cacheTime)
+
+    // MARK: - Cache Configuration
+
+    /// Cache is considered fresh for 5 minutes
+    private let cacheFreshDuration: TimeInterval = 300
 
     // MARK: - Initialization
 
@@ -45,8 +51,8 @@ actor PageRepositoryImpl: PageRepository {
         let dto = try await apiService.getPage(spaceId: spaceId, pageId: pageId)
         let page = Page(from: dto)
 
-        // Cache page with content
-        cachedPages[pageId] = page
+        // Cache page with content and timestamp
+        cachedPages[pageId] = (page, Date())
 
         // Save to persistent storage
         await savePageToStore(dto, spaceId: spaceId)
@@ -58,13 +64,34 @@ actor PageRepositoryImpl: PageRepository {
         let dto = try await apiService.getPageByPath(spaceId: spaceId, path: path)
         let page = Page(from: dto)
 
-        // Cache page with content
-        cachedPages[page.id] = page
+        // Cache page with content and timestamp
+        cachedPages[page.id] = (page, Date())
 
         // Save to persistent storage
         await savePageToStore(dto, spaceId: spaceId)
 
         return page
+    }
+
+    // MARK: - Cached Page Access (for Stale-While-Revalidate)
+
+    /// Get cached page if available (memory or SwiftData)
+    func getCachedPage(spaceId: String, pageId: String) async -> Page? {
+        // First check memory cache
+        if let cached = cachedPages[pageId] {
+            return cached.page
+        }
+
+        // Then check SwiftData
+        return await loadPageFromStore(pageId: pageId)
+    }
+
+    /// Check if cached page is still fresh
+    func isCacheFresh(pageId: String) async -> Bool {
+        guard let cached = cachedPages[pageId] else {
+            return false
+        }
+        return Date().timeIntervalSince(cached.timestamp) < cacheFreshDuration
     }
 
     func searchPages(spaceId: String, query: String) async throws -> [SearchResult] {
@@ -126,8 +153,8 @@ actor PageRepositoryImpl: PageRepository {
 
         let page = Page(from: dto)
 
-        // Update cache
-        cachedPages[pageId] = page
+        // Update cache with timestamp
+        cachedPages[pageId] = (page, Date())
 
         // Invalidate content tree cache (structure might have changed)
         cachedContentTrees.removeValue(forKey: spaceId)
@@ -216,6 +243,30 @@ actor PageRepositoryImpl: PageRepository {
     private func savePageToStore(_ dto: PageContentDTO, spaceId: String) async {
         await MainActor.run {
             _ = try? store.savePageContent(dto, spaceId: spaceId)
+        }
+    }
+
+    /// Load page from SwiftData store
+    private func loadPageFromStore(pageId: String) async -> Page? {
+        await MainActor.run {
+            guard let cached = try? store.fetchPage(id: pageId) else {
+                return nil
+            }
+
+            return Page(
+                id: cached.id,
+                title: cached.title,
+                emoji: cached.emoji,
+                path: cached.path,
+                slug: cached.slug,
+                description: cached.pageDescription,
+                type: Page.PageType(rawValue: cached.pageType) ?? .document,
+                children: [],
+                markdown: cached.markdown,
+                createdAt: cached.createdAt,
+                updatedAt: cached.updatedAt,
+                linkTarget: nil
+            )
         }
     }
 

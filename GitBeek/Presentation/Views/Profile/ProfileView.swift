@@ -310,35 +310,286 @@ struct SettingsView: View {
 // MARK: - Cache Settings View
 
 struct CacheSettingsView: View {
-    @State private var cacheSize: String = "Calculating..."
+    @State private var stats: CacheManager.CacheStats?
+    @State private var isLoading = true
+    @State private var showClearAllConfirmation = false
+    @State private var showClearImagesConfirmation = false
+    @State private var showClearContentConfirmation = false
+    @State private var showClearStaleConfirmation = false
 
     var body: some View {
         List {
-            Section {
-                LabeledContent("Cache Size", value: cacheSize)
-            } footer: {
-                Text("Cache stores content for offline access and faster loading.")
+            // Storage overview section
+            storageOverviewSection
+
+            // Detailed breakdown section
+            if let stats = stats {
+                detailedBreakdownSection(stats)
             }
 
-            Section {
-                Button("Clear Cache", role: .destructive) {
-                    Task { @MainActor in
-                        CacheManager.shared.clearAllCaches()
-                        await updateCacheSize()
-                    }
-                }
-            }
+            // Cache actions section
+            cacheActionsSection
         }
         .navigationTitle("Storage & Cache")
         .task {
-            await updateCacheSize()
+            await refreshStats()
+        }
+        .refreshable {
+            await refreshStats()
+        }
+        // Clear All confirmation
+        .alert("Clear All Cache", isPresented: $showClearAllConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear All", role: .destructive) {
+                Task { @MainActor in
+                    CacheManager.shared.clearAllCaches()
+                    await refreshStats()
+                }
+            }
+        } message: {
+            Text("This will delete all cached data including images, pages, and offline content. You'll need to reload data when online.")
+        }
+        // Clear Images confirmation
+        .alert("Clear Image Cache", isPresented: $showClearImagesConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear Images", role: .destructive) {
+                Task { @MainActor in
+                    CacheManager.shared.clearImageCache()
+                    await refreshStats()
+                }
+            }
+        } message: {
+            Text("This will delete all cached images. Images will be re-downloaded when needed.")
+        }
+        // Clear Content confirmation
+        .alert("Clear Content Cache", isPresented: $showClearContentConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear Content", role: .destructive) {
+                Task { @MainActor in
+                    CacheManager.shared.clearContentCache()
+                    await refreshStats()
+                }
+            }
+        } message: {
+            Text("This will delete all cached organizations, spaces, and pages. Data will be refreshed from the server.")
+        }
+        // Clear Stale confirmation
+        .alert("Clear Stale Data", isPresented: $showClearStaleConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Clear Stale", role: .destructive) {
+                Task { @MainActor in
+                    CacheManager.shared.clearStaleCaches(maxAge: 86400)
+                    await refreshStats()
+                }
+            }
+        } message: {
+            Text("This will delete cached data older than 24 hours while keeping recent items.")
         }
     }
 
+    // MARK: - Storage Overview Section
+
+    private var storageOverviewSection: some View {
+        Section {
+            HStack {
+                // Storage icon with gradient
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [AppColors.primaryFallback, AppColors.secondaryFallback],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
+                    .overlay {
+                        Image(systemName: "externaldrive.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                    }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Total Cache Size")
+                        .font(AppTypography.bodyMedium)
+                        .foregroundStyle(.secondary)
+
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else if let stats = stats {
+                        Text(CacheManager.formatBytes(stats.totalSize))
+                            .font(AppTypography.titleLarge)
+                            .fontWeight(.semibold)
+                    } else {
+                        Text("--")
+                            .font(AppTypography.titleLarge)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, AppSpacing.xs)
+        } footer: {
+            Text("Cache stores content for offline access and faster loading. Clearing cache will not affect your account or bookmarks.")
+        }
+    }
+
+    // MARK: - Detailed Breakdown Section
+
+    private func detailedBreakdownSection(_ stats: CacheManager.CacheStats) -> some View {
+        Section("Storage Breakdown") {
+            // Image cache (SDWebImage + our cache)
+            CacheItemRow(
+                icon: "photo.fill",
+                iconColor: .orange,
+                title: "Images",
+                subtitle: "Downloaded images from pages",
+                size: stats.totalImageCacheSize
+            )
+
+            // Content cache (SwiftData)
+            CacheItemRow(
+                icon: "doc.text.fill",
+                iconColor: .blue,
+                title: "Content",
+                subtitle: "\(stats.organizationCount) orgs · \(stats.spaceCount) spaces · \(stats.pageCount) pages",
+                size: stats.swiftDataSize
+            )
+
+            // Other files
+            let otherSize = stats.fileCacheSize - stats.imageCacheSize
+            if otherSize > 0 {
+                CacheItemRow(
+                    icon: "folder.fill",
+                    iconColor: .gray,
+                    title: "Other Files",
+                    subtitle: "\(stats.fileCacheCount - stats.imageCacheCount) files",
+                    size: otherSize
+                )
+            }
+        }
+    }
+
+    // MARK: - Cache Actions Section
+
+    private var cacheActionsSection: some View {
+        Section("Manage Cache") {
+            // Clear stale data (gentle option)
+            Button {
+                showClearStaleConfirmation = true
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clear Stale Data")
+                        Text("Remove data older than 24 hours")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundStyle(.orange)
+                }
+            }
+            .tint(.primary)
+
+            // Clear images only
+            Button {
+                showClearImagesConfirmation = true
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clear Image Cache")
+                        Text("Free up space by removing cached images")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "photo.stack")
+                        .foregroundStyle(.orange)
+                }
+            }
+            .tint(.primary)
+
+            // Clear content only
+            Button {
+                showClearContentConfirmation = true
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clear Content Cache")
+                        Text("Remove cached organizations, spaces, and pages")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "doc.text")
+                        .foregroundStyle(.blue)
+                }
+            }
+            .tint(.primary)
+
+            // Clear all (destructive)
+            Button(role: .destructive) {
+                showClearAllConfirmation = true
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Clear All Cache")
+                        Text("Remove all cached data")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "trash")
+                }
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
     @MainActor
-    private func updateCacheSize() async {
-        let stats = CacheManager.shared.getStats()
-        cacheSize = CacheManager.formatBytes(stats.fileCacheSize)
+    private func refreshStats() async {
+        isLoading = true
+        // Small delay to show loading state
+        try? await Task.sleep(for: .milliseconds(300))
+        stats = CacheManager.shared.getStats()
+        isLoading = false
+    }
+}
+
+// MARK: - Cache Item Row
+
+private struct CacheItemRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let size: Int64
+
+    var body: some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(iconColor)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(AppTypography.bodyLarge)
+
+                Text(subtitle)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Text(CacheManager.formatBytes(size))
+                .font(AppTypography.bodyMedium)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
     }
 }
 
