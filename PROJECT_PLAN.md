@@ -397,12 +397,12 @@ GitBookiOS/
 ### Phase 8: Settings & Preferences
 
 #### 8.1 App Settings
-- [ ] SettingsView (NavigationStack + Form with Liquid Glass)
+- [x] SettingsView (NavigationStack + Form with Liquid Glass)
 - [x] 主题选择 (System / Light / Dark 三选一)
 - ~~编辑器偏好~~ ❌ 已取消（无编辑功能）
-- [ ] 阅读偏好
-  - [ ] 字体大小
-  - [ ] 代码高亮主题
+- [x] 阅读偏好
+  - [x] 字体大小 (Small / Default / Large / Extra Large)
+  - [x] 代码高亮主题 (9 themes: Xcode, GitHub, Atom One, Dracula, etc.)
 - [ ] 缓存管理
 
 #### 8.2 About & Support

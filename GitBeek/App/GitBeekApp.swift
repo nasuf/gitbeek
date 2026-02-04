@@ -286,6 +286,8 @@ struct GitBeekApp: App {
     // MARK: - Body
 
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
+    @AppStorage("fontScale") private var fontScale: FontScale = .default
+    @AppStorage("codeTheme") private var codeTheme: CodeHighlightTheme = .xcode
 
     var body: some Scene {
         WindowGroup {
@@ -294,6 +296,8 @@ struct GitBeekApp: App {
                 .environment(container.profileViewModel)
                 .environment(container.searchViewModel)
                 .environment(container.appRouter)
+                .environment(\.fontScale, fontScale.multiplier)
+                .environment(\.codeTheme, codeTheme)
                 .preferredColorScheme(appTheme.colorScheme)
         }
     }

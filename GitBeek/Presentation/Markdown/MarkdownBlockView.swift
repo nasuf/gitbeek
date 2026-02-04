@@ -13,6 +13,10 @@ struct MarkdownBlockView: View {
 
     let block: MarkdownBlock
 
+    // MARK: - Environment
+
+    @Environment(\.fontScale) private var fontScale
+
     // MARK: - Body
 
     var body: some View {
@@ -29,7 +33,7 @@ struct MarkdownBlockView: View {
 
         case .paragraph(let text):
             Text(text)
-                .font(AppTypography.bodyMedium)
+                .font(.system(size: 15 * fontScale))
                 .textSelection(.enabled)
 
         case .codeBlock(let language, let code):

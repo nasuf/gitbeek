@@ -253,6 +253,10 @@ struct OrganizationPickerView: View {
 
 struct SettingsView: View {
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
+    @AppStorage("fontScale") private var fontScale: FontScale = .default
+    @AppStorage("codeTheme") private var codeTheme: CodeHighlightTheme = .xcode
+
+    @State private var showReadingSettings = false
 
     var body: some View {
         List {
@@ -264,6 +268,21 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.inline)
+            }
+
+            Section("Reading") {
+                Button {
+                    showReadingSettings = true
+                } label: {
+                    HStack {
+                        Text("Reading Settings")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text("\(fontScale.displayName) · \(codeTheme.displayName)")
+                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
+                    }
+                }
             }
 
             Section("About") {
@@ -282,6 +301,9 @@ struct SettingsView: View {
             }
         }
         .navigationTitle("Settings")
+        .sheet(isPresented: $showReadingSettings) {
+            ReadingSettingsSheet()
+        }
     }
 }
 

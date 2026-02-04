@@ -19,6 +19,7 @@ struct PageDetailView: View {
     let pageId: String
     @State private var viewModel: PageDetailViewModel
     @State private var isFavorite = false
+    @State private var showReadingSettings = false
 
     private let recentPagesManager = RecentPagesManager.shared
 
@@ -68,6 +69,9 @@ struct PageDetailView: View {
         } message: {
             Text(viewModel.errorMessage ?? "An unknown error occurred.")
         }
+        .sheet(isPresented: $showReadingSettings) {
+            ReadingSettingsSheet()
+        }
     }
 
     // MARK: - Toolbar
@@ -87,6 +91,15 @@ struct PageDetailView: View {
         // More menu
         ToolbarItem(placement: .primaryAction) {
             Menu {
+                // Reading settings
+                Button {
+                    showReadingSettings = true
+                } label: {
+                    Label("Reading Settings", systemImage: "textformat.size")
+                }
+
+                Divider()
+
                 // Share
                 Button {
                     // TODO: Share page

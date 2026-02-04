@@ -17,7 +17,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .heading(let level, let text) = blocks.first else {
+        guard case .heading(let level, let text) = blocks.first?.content else {
             XCTFail("Expected heading block")
             return
         }
@@ -30,7 +30,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .heading(let level, let text) = blocks.first else {
+        guard case .heading(let level, let text) = blocks.first?.content else {
             XCTFail("Expected heading block")
             return
         }
@@ -48,19 +48,19 @@ final class MarkdownParserTests: XCTestCase {
 
         XCTAssertEqual(blocks.count, 3)
 
-        guard case .heading(let level1, _) = blocks[0] else {
+        guard case .heading(let level1, _) = blocks[0].content else {
             XCTFail("Expected heading block")
             return
         }
         XCTAssertEqual(level1, 1)
 
-        guard case .heading(let level2, _) = blocks[1] else {
+        guard case .heading(let level2, _) = blocks[1].content else {
             XCTFail("Expected heading block")
             return
         }
         XCTAssertEqual(level2, 2)
 
-        guard case .heading(let level3, _) = blocks[2] else {
+        guard case .heading(let level3, _) = blocks[2].content else {
             XCTFail("Expected heading block")
             return
         }
@@ -74,7 +74,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -86,7 +86,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -98,7 +98,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -110,7 +110,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -122,7 +122,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -134,7 +134,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph(let text) = blocks.first else {
+        guard case .paragraph(let text) = blocks.first?.content else {
             XCTFail("Expected paragraph block")
             return
         }
@@ -153,7 +153,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .codeBlock(let language, let code) = blocks.first else {
+        guard case .codeBlock(let language, let code) = blocks.first?.content else {
             XCTFail("Expected code block")
             return
         }
@@ -170,7 +170,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .codeBlock(let language, let code) = blocks.first else {
+        guard case .codeBlock(let language, let code) = blocks.first?.content else {
             XCTFail("Expected code block")
             return
         }
@@ -185,7 +185,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .blockquote(let innerBlocks) = blocks.first else {
+        guard case .blockquote(let innerBlocks) = blocks.first?.content else {
             XCTFail("Expected blockquote block")
             return
         }
@@ -200,7 +200,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .blockquote = blocks.first else {
+        guard case .blockquote = blocks.first?.content else {
             XCTFail("Expected blockquote block")
             return
         }
@@ -217,7 +217,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .unorderedList(let items) = blocks.first else {
+        guard case .unorderedList(let items) = blocks.first?.content else {
             XCTFail("Expected unordered list block")
             return
         }
@@ -233,7 +233,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .orderedList(let items, let startIndex) = blocks.first else {
+        guard case .orderedList(let items, let startIndex) = blocks.first?.content else {
             XCTFail("Expected ordered list block")
             return
         }
@@ -249,7 +249,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .orderedList(let items, let startIndex) = blocks.first else {
+        guard case .orderedList(let items, let startIndex) = blocks.first?.content else {
             XCTFail("Expected ordered list block")
             return
         }
@@ -265,7 +265,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .unorderedList(let items) = blocks.first else {
+        guard case .unorderedList(let items) = blocks.first?.content else {
             XCTFail("Expected unordered list block")
             return
         }
@@ -281,7 +281,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .paragraph = blocks.first else {
+        guard case .paragraph = blocks.first?.content else {
             // Images in paragraphs are handled as inline content
             return
         }
@@ -300,7 +300,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertTrue(blocks.contains { block in
-            if case .thematicBreak = block { return true }
+            if case .thematicBreak = block.content { return true }
             return false
         })
     }
@@ -317,7 +317,7 @@ final class MarkdownParserTests: XCTestCase {
         let blocks = await MarkdownParser.shared.parse(markdown)
 
         XCTAssertEqual(blocks.count, 1)
-        guard case .table(let headers, let rows) = blocks.first else {
+        guard case .table(let headers, let rows) = blocks.first?.content else {
             XCTFail("Expected table block")
             return
         }
@@ -338,7 +338,7 @@ final class MarkdownParserTests: XCTestCase {
         """
         let blocks = await MarkdownParser.shared.parse(markdown)
 
-        guard case .htmlBlock(let content) = blocks.first else {
+        guard case .htmlBlock(let content) = blocks.first?.content else {
             // HTML parsing may vary, just ensure no crash
             return
         }
@@ -379,35 +379,35 @@ final class MarkdownParserTests: XCTestCase {
 
         // Check for heading
         let hasHeading = blocks.contains { block in
-            if case .heading = block { return true }
+            if case .heading = block.content { return true }
             return false
         }
         XCTAssertTrue(hasHeading)
 
         // Check for code block
         let hasCode = blocks.contains { block in
-            if case .codeBlock = block { return true }
+            if case .codeBlock = block.content { return true }
             return false
         }
         XCTAssertTrue(hasCode)
 
         // Check for list
         let hasList = blocks.contains { block in
-            if case .unorderedList = block { return true }
+            if case .unorderedList = block.content { return true }
             return false
         }
         XCTAssertTrue(hasList)
 
         // Check for blockquote
         let hasQuote = blocks.contains { block in
-            if case .blockquote = block { return true }
+            if case .blockquote = block.content { return true }
             return false
         }
         XCTAssertTrue(hasQuote)
 
         // Check for table
         let hasTable = blocks.contains { block in
-            if case .table = block { return true }
+            if case .table = block.content { return true }
             return false
         }
         XCTAssertTrue(hasTable)
@@ -432,18 +432,21 @@ final class MarkdownParserTests: XCTestCase {
 
     // MARK: - MarkdownBlock Identity Tests
 
-    func testMarkdownBlockEquatable() {
+    func testMarkdownBlockContentEquatable() {
         let heading1 = MarkdownBlock.heading(level: 1, text: "Title")
         let heading2 = MarkdownBlock.heading(level: 1, text: "Title")
 
-        XCTAssertEqual(heading1.id, heading2.id)
+        // Each call creates a new UUID, so IDs are different
+        XCTAssertNotEqual(heading1.id, heading2.id)
+        // But content should be equal
+        XCTAssertEqual(heading1.content, heading2.content)
     }
 
     func testMarkdownBlockDifferentContent() {
         let heading1 = MarkdownBlock.heading(level: 1, text: "Title 1")
         let heading2 = MarkdownBlock.heading(level: 1, text: "Title 2")
 
-        XCTAssertNotEqual(heading1.id, heading2.id)
+        XCTAssertNotEqual(heading1.content, heading2.content)
     }
 
     func testListItemBlockEquatable() {
